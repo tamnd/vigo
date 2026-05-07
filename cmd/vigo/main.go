@@ -6,11 +6,14 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
 
 	"github.com/tamnd/vigo/app"
+	"github.com/tamnd/vigo/assets"
+	"github.com/tamnd/vigo/menu"
 	"github.com/tamnd/vigo/vio"
 	"github.com/tamnd/vigo/window"
 )
@@ -44,6 +47,9 @@ func run() error {
 	defer screen.Fini()
 
 	a := app.New(screen)
+	if items, err := menu.LoadTOML(bytes.NewReader(assets.MainMenu())); err == nil {
+		a.MenuBar().Items = items
+	}
 
 	desktop := a.Desktop()
 	dr := desktop.Bounds

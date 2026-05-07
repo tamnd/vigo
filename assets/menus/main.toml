@@ -1,0 +1,111 @@
+# vigo IDE menu tree, loaded by cmd/vigo at startup.
+#
+# Format: a minimal TOML subset, parsed by menu.LoadTOML. Each
+# top-level menu is a [[menu]] table; each row inside it is a
+# [[menu.items]] table. Recognized keys: title, hotkey (rune index),
+# cmd (numeric command id), shortcut (label only, key binding lives
+# in code), sep (true for separator). Unknown keys are ignored.
+#
+# Command IDs:
+#   1   = CmdQuit
+#   9   = CmdHelp
+#   100+ = user commands (defined per-binary).
+#
+# v0.2 only wires File -> Exit and Help -> About. The other menus
+# are placeholders for v0.3 (editor) and v0.4 (project) and resolve
+# to no-op commands until those ship.
+
+[[menu]]
+title = "≡"
+hotkey = -1
+
+  [[menu.items]]
+  title = "About"
+  cmd = 9
+
+[[menu]]
+title = "File"
+hotkey = 0
+
+  [[menu.items]]
+  title = "Open"
+  hotkey = 0
+  cmd = 100
+  shortcut = "F3"
+
+  [[menu.items]]
+  title = "New"
+  hotkey = 0
+  cmd = 101
+
+  [[menu.items]]
+  title = "Save"
+  hotkey = 0
+  cmd = 102
+  shortcut = "F2"
+
+  [[menu.items]]
+  sep = true
+
+  [[menu.items]]
+  title = "Exit"
+  hotkey = 1
+  cmd = 1
+  shortcut = "Alt-X"
+
+[[menu]]
+title = "Edit"
+hotkey = 0
+
+  [[menu.items]]
+  title = "Undo"
+  hotkey = 0
+  cmd = 110
+  shortcut = "Alt-Bksp"
+
+  [[menu.items]]
+  sep = true
+
+  [[menu.items]]
+  title = "Cut"
+  hotkey = 2
+  cmd = 111
+  shortcut = "Shift-Del"
+
+  [[menu.items]]
+  title = "Copy"
+  hotkey = 0
+  cmd = 112
+  shortcut = "Ctrl-Ins"
+
+  [[menu.items]]
+  title = "Paste"
+  hotkey = 0
+  cmd = 113
+  shortcut = "Shift-Ins"
+
+[[menu]]
+title = "Window"
+hotkey = 0
+
+  [[menu.items]]
+  title = "Close"
+  hotkey = 0
+  cmd = 4
+  shortcut = "Alt-F3"
+
+  [[menu.items]]
+  title = "Next"
+  hotkey = 0
+  cmd = 7
+  shortcut = "F6"
+
+[[menu]]
+title = "Help"
+hotkey = 0
+
+  [[menu.items]]
+  title = "About"
+  hotkey = 0
+  cmd = 9
+  shortcut = "F1"
