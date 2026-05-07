@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tamnd/vigo/internal/app"
-	"github.com/tamnd/vigo/internal/vio"
+	"github.com/tamnd/vigo/app"
+	"github.com/tamnd/vigo/vio"
 )
 
 // Version is the build version of the vigo binary. It is overridden at link

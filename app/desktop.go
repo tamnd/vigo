@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/tamnd/vigo/internal/event"
-	"github.com/tamnd/vigo/internal/view"
-	"github.com/tamnd/vigo/internal/vio"
+	"github.com/tamnd/vigo/event"
+	"github.com/tamnd/vigo/view"
+	"github.com/tamnd/vigo/vio"
 )
 
 // Background is the dotted-fill view that shows behind every window. It is

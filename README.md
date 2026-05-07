@@ -96,12 +96,11 @@ Press `Alt-X` (or `F10`, then `File`, then `Exit`) to quit.
 ```
 vigo/
   cmd/vigo/        binary entrypoint
-  internal/
-    vio/           tcell-backed screen, palette, surface, glyphs
-    event/         typed events, keyboard, mouse, commands
-    view/          View, Group, focus, palette indirection
-    app/           Application, Desktop, Background, main loop
-    menu/          MenuBar, StatusLine
+  vio/             tcell-backed screen, palette, surface, glyphs
+  event/           typed events, keyboard, mouse, commands
+  view/            View, Group, focus, palette indirection
+  app/             Application, Desktop, Background, main loop
+  menu/            MenuBar, StatusLine
   docs/            roadmap, architecture, overview
   .github/         CI, release workflows
   CHANGELOG.md

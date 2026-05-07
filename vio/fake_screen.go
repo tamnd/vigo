@@ -3,7 +3,7 @@ package vio
 import (
 	"sync"
 
-	"github.com/tamnd/vigo/internal/event"
+	"github.com/tamnd/vigo/event"
 )
 
 // FakeScreen is an in-memory Screen for tests. It keeps a Surface that

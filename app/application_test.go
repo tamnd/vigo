@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tamnd/vigo/internal/event"
-	"github.com/tamnd/vigo/internal/menu"
-	"github.com/tamnd/vigo/internal/vio"
+	"github.com/tamnd/vigo/event"
+	"github.com/tamnd/vigo/menu"
+	"github.com/tamnd/vigo/vio"
 )
 
 const (
@@ -121,11 +121,12 @@ func TestApplicationEmptyDesktopSnapshot(t *testing.T) {
 		}
 	}
 
-	want, err := os.ReadFile(goldenPath)
+	raw, err := os.ReadFile(goldenPath)
 	if err != nil {
 		t.Fatalf("read golden: %v (re-run with UPDATE_GOLDEN=1 to seed)", err)
 	}
-	if string(want) != got {
+	want := strings.ReplaceAll(string(raw), "\r\n", "\n")
+	if want != got {
 		t.Fatalf("snapshot drift:\nwant:\n%s\ngot:\n%s", want, got)
 	}
 }

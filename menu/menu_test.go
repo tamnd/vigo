@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tamnd/vigo/internal/event"
-	"github.com/tamnd/vigo/internal/view"
-	"github.com/tamnd/vigo/internal/vio"
+	"github.com/tamnd/vigo/event"
+	"github.com/tamnd/vigo/view"
+	"github.com/tamnd/vigo/vio"
 )
 
 func newPalettedHost() *view.Group {

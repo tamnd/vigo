@@ -11,25 +11,25 @@ it.
 ```
                                   cmd/vigo
                                      |
-   +-------------+-------------+------+------+--------------+
-   |  internal/  |  internal/  |  internal/ |  internal/   |
-   |  app        |  edit       |  project   |  debug (dap) |
-   |  desktop    |  buffer     |  run       |  lsp         |
-   |  menu       |  syntax     |  output    |  watch (fs)  |
-   |  widget     |             |            |              |
-   +-----+-------+------+------+------+-----+-------+------+
-         |              |             |             |
-         v              v             v             v
-   +----------------------------------------------------+
-   |   internal/view  -- View / Group / focus / palette  |
-   |   internal/event -- events, commands, dispatch      |
-   |   internal/cmd   -- command bus + key bindings      |
-   |   internal/help  -- help context registry           |
-   +----------------------------------------------------+
+   +---------------+---------------+--------------+----------------+
+   |               |               |              |                |
+   |  app          |  edit         |  project     |  debug (dap)   |
+   |  desktop      |  buffer       |  run         |  lsp           |
+   |  menu         |  syntax       |  output      |  watch (fs)    |
+   |  widget       |               |              |                |
+   +-------+-------+-------+-------+------+-------+-------+--------+
+           |               |              |               |
+           v               v              v               v
+   +---------------------------------------------------------+
+   |   view  -- View / Group / focus / palette               |
+   |   event -- events, commands, dispatch                   |
+   |   cmd   -- command bus + key bindings                   |
+   |   help  -- help context registry                        |
+   +---------------------------------------------------------+
                               |
                               v
                  +-------------------------+
-                 |  internal/vio           |
+                 |  vio                    |
                  |  - Screen wrapper       |
                  |  - DrawBuffer / Cell    |
                  |  - Palette / Attr       |
@@ -43,8 +43,8 @@ Rules:
 
 - Packages above only depend on packages strictly below.
 - `pkg/vigo` re-exports the v1.0-stable surface (frozen at 1.0).
-- `internal/*` may break across minor versions pre-1.0 freely.
-- Only `internal/vio` imports `tcell`. The screen layer is swappable
+- Pre-1.0, the rest of the tree may break across minor versions freely.
+- Only `vio` imports `tcell`. The screen layer is swappable
   for tests, headless rendering, or future GUI targets.
 
 ## 2. Object model
@@ -153,7 +153,7 @@ view in the chain may handle it. Application owns global handlers
 commands; MenuBar and StatusLine re-render automatically when
 `enableCommands` or `disableCommands` is called.
 
-Key bindings live in `internal/cmd/keymap.go`. Default Borland map:
+Key bindings live in `cmd/keymap.go`. Default Borland map:
 
 ```
 F1=cmHelp  F2=cmSave  F3=cmOpen  F4=cmRunUntilCursor
@@ -235,7 +235,7 @@ subprocesses with a 2-second grace period before SIGKILL.
 ### 7.1 LSP / gopls (v0.5)
 
 ```
-Editor -> internal/lsp.Client
+Editor -> lsp.Client
             |  JSON-RPC 2.0 over stdio
             v
          gopls subprocess (managed lifecycle)
@@ -253,7 +253,7 @@ Editor -> internal/lsp.Client
 ### 7.2 DAP / dlv (v0.6)
 
 ```
-Debug UI -> internal/dap.Client -> dlv dap subprocess -> debuggee
+Debug UI -> dap.Client -> dlv dap subprocess -> debuggee
 ```
 
 - Use Delve's native DAP server (`dlv dap --listen=...`).
@@ -273,12 +273,12 @@ Debug UI -> internal/dap.Client -> dlv dap subprocess -> debuggee
 
 ## 9. Testing strategy
 
-- `internal/vio` tests use a fake screen (`vio/fake_screen.go`) that
+- `vio` tests use a fake screen (`vio/fake_screen.go`) that
   records cells; assertions are made against snapshot strings.
-- `internal/view` and `internal/widget` tests build a tiny app, post
+- `view` and `widget` tests build a tiny app, post
   events via `Application.PutEvent`, and snapshot-assert the rendered
   surface.
-- `internal/edit` runs against a buffer fixture set with golden
+- `edit` runs against a buffer fixture set with golden
   expected edits.
 - LSP and DAP packages have integration tests gated by
   `-tags=integration`, which start a real gopls or dlv.

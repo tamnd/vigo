@@ -29,7 +29,7 @@ Before tagging:
 2. `golangci-lint` passes with the project config; no `nolint` without
    a justification comment.
 3. Tests pass with at least 70% line coverage on new packages, 80% on
-   `internal/vio`, `internal/event`, `internal/view`, `internal/edit`.
+   `vio`, `event`, `view`, `edit`.
 4. Prior version's demo programs still run.
 5. `CHANGELOG.md` has an entry under `## [vN.M.0] - YYYY-MM-DD` with
    `Added`, `Changed`, `Fixed`, `Removed` headings.
@@ -37,41 +37,41 @@ Before tagging:
 
 ## v0.1, foundation, spec 1600
 
-- `internal/vio`: tcell screen, `Cell`, `Attr`, `Surface`, CP437 to
+- `vio`: tcell screen, `Cell`, `Attr`, `Surface`, CP437 to
   Unicode glyph table, single and double border helpers.
-- `internal/event`: typed events (key, mouse, broadcast, command,
+- `event`: typed events (key, mouse, broadcast, command,
   idle, resize), queue, dispatch primitives.
-- `internal/view`: View, Group, focus chain, options bitmask, growMode,
+- `view`: View, Group, focus chain, options bitmask, growMode,
   state bitmask, palette indirection.
-- `internal/app`: Application, Desktop, Background, idle loop, main
+- `app`: Application, Desktop, Background, idle loop, main
   loop, suspend/resume, signal handling.
-- `internal/menu`: minimal MenuBar and StatusLine (functional in v0.2).
+- `menu`: minimal MenuBar and StatusLine (functional in v0.2).
 - `cmd/vigo`: launches an empty Borland-blue desktop with menu bar
   and status line; Alt-X quits.
 - 16-color BIOS palette, double-line borders, drop shadows.
 
 ## v0.2, TUI core, spec 1601
 
-- `internal/window`: Window, Dialog, frame with title, close, zoom,
+- `window`: Window, Dialog, frame with title, close, zoom,
   number; drag and resize via mouse and Ctrl-F5; modal `ExecView`.
-- `internal/widget`: Label, InputLine, Button, CheckBoxes, RadioButtons,
+- `widget`: Label, InputLine, Button, CheckBoxes, RadioButtons,
   ListBox with scrollbar, Memo, StaticText.
-- `internal/menu`: full pull-downs, submenus, accelerators, dim state.
-- `internal/cmd`: command bus with `cmCut`, `cmCopy`, `cmPaste`,
+- `menu`: full pull-downs, submenus, accelerators, dim state.
+- `cmd`: command bus with `cmCut`, `cmCopy`, `cmPaste`,
   `cmQuit`, etc.; per-view enable/disable masks.
-- `internal/help`: F1 contextual help index, About dialog scaffold.
+- `help`: F1 contextual help index, About dialog scaffold.
 - Demo: file-open dialog plus the four classic Turbo Vision tools
   (calculator, calendar, ASCII table, puzzle).
 
 ## v0.3, editor, spec 1602
 
-- `internal/buffer`: gap buffer with line index, UTF-8 boundaries,
+- `buffer`: gap buffer with line index, UTF-8 boundaries,
   efficient column/row math.
-- `internal/edit`: EditWindow, Editor, multi-cursor selections,
+- `edit`: EditWindow, Editor, multi-cursor selections,
   clipboard, undo/redo (linear plus grouped), find/replace
   (regexp via Go's `regexp`), word-wrap toggle, tabs vs spaces, EOL
   detection.
-- `internal/syntax`: highlighter framework plus a Go highlighter built
+- `syntax`: highlighter framework plus a Go highlighter built
   on `go/scanner`.
 - File ops: open, save, save-as, autosave, recent files, reload-on-disk-
   change.
@@ -80,17 +80,17 @@ Before tagging:
 
 ## v0.4, project and toolchain, spec 1603
 
-- `internal/project`: `go.mod` discovery, module graph, file tree
+- `project`: `go.mod` discovery, module graph, file tree
   backed by `os.ReadDir` and fsnotify.
-- `internal/run`: `go build|run|test|vet`, `gofmt`, `goimports`. Streams
+- `run`: `go build|run|test|vet`, `gofmt`, `goimports`. Streams
   output into a tail-log window with click-to-jump on `file:line:col`.
-- `internal/output`: scrollback, ANSI passthrough, error parser.
+- `output`: scrollback, ANSI passthrough, error parser.
 - Run targets in `.vigo/targets.toml`.
 - F9 build, Ctrl-F9 run, F11 test, Shift-F9 clean.
 
 ## v0.5, code intelligence, spec 1604
 
-- `internal/lsp`: JSON-RPC 2.0 over stdio, LSP client, gopls
+- `lsp`: JSON-RPC 2.0 over stdio, LSP client, gopls
   supervisor.
 - Editor integrations: completion popup, signature help, hover,
   goto-definition / -declaration / -references, document symbols,
@@ -101,7 +101,7 @@ Before tagging:
 
 ## v0.6, debugger, spec 1605
 
-- `internal/dap`: DAP client, `dlv dap` supervisor.
+- `dap`: DAP client, `dlv dap` supervisor.
 - Run/Debug configuration in `.vigo/launch.toml`.
 - Debug UI: breakpoint gutter, call-stack, variables/watch, registers,
   goroutines, threads, REPL/eval prompt.
@@ -139,5 +139,5 @@ Before tagging:
 ## Versioning
 
 SemVer. Pre-1.0 minor bumps may break APIs. After 1.0, only major
-bumps may break the exported `pkg/vigo` surface. The `internal/` tree
+bumps may break the exported `pkg/vigo` surface. The `` tree
 is never API-stable.

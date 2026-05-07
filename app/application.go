@@ -8,10 +8,10 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/tamnd/vigo/internal/event"
-	"github.com/tamnd/vigo/internal/menu"
-	"github.com/tamnd/vigo/internal/view"
-	"github.com/tamnd/vigo/internal/vio"
+	"github.com/tamnd/vigo/event"
+	"github.com/tamnd/vigo/menu"
+	"github.com/tamnd/vigo/view"
+	"github.com/tamnd/vigo/vio"
 )
 
 // Application is the root Group of the view tree. It holds the screen, the

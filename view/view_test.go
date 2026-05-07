@@ -3,8 +3,8 @@ package view
 import (
 	"testing"
 
-	"github.com/tamnd/vigo/internal/event"
-	"github.com/tamnd/vigo/internal/vio"
+	"github.com/tamnd/vigo/event"
+	"github.com/tamnd/vigo/vio"
 )
 
 func TestNewViewDefaults(t *testing.T) {

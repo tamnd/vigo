@@ -1,8 +1,8 @@
 package view
 
 import (
-	"github.com/tamnd/vigo/internal/event"
-	"github.com/tamnd/vigo/internal/vio"
+	"github.com/tamnd/vigo/event"
+	"github.com/tamnd/vigo/vio"
 )
 
 // Group is a View that owns a list of child views, dispatches events

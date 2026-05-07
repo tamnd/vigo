@@ -3,7 +3,7 @@ package vio
 import (
 	"testing"
 
-	"github.com/tamnd/vigo/internal/event"
+	"github.com/tamnd/vigo/event"
 )
 
 func TestFakeScreenRoundtrip(t *testing.T) {

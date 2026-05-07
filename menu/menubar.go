@@ -4,9 +4,9 @@
 package menu
 
 import (
-	"github.com/tamnd/vigo/internal/event"
-	"github.com/tamnd/vigo/internal/view"
-	"github.com/tamnd/vigo/internal/vio"
+	"github.com/tamnd/vigo/event"
+	"github.com/tamnd/vigo/view"
+	"github.com/tamnd/vigo/vio"
 )
 
 // Item is a single label on the menu bar. Hotkey is the index of the

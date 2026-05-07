@@ -5,7 +5,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 
-	"github.com/tamnd/vigo/internal/event"
+	"github.com/tamnd/vigo/event"
 )
 
 func TestTranslateKeyRune(t *testing.T) {

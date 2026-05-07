@@ -1,53 +1,113 @@
-name: Release
+name: release
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*.*.*"
 
 permissions:
   contents: write
 
 jobs:
-  release:
-    name: release
+  build:
+    name: build ${{ matrix.goos }}/${{ matrix.goarch }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+          - goos: freebsd
+            goarch: amd64
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
         with:
-          fetch-depth: 0
-      - uses: actions/setup-go@v5
-        with:
-          go-version: stable
+          go-version-file: go.mod
           cache: true
-      - name: Build cross-platform binaries
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
         run: |
-          mkdir -p dist
-          version=${GITHUB_REF_NAME#v}
-          for os_arch in \
-            linux/amd64 linux/arm64 \
-            darwin/amd64 darwin/arm64 \
-            windows/amd64 windows/arm64 \
-            freebsd/amd64; do
-            os="${os_arch%/*}"
-            arch="${os_arch#*/}"
-            ext=""
-            if [ "$os" = "windows" ]; then ext=".exe"; fi
-            out="dist/vigo_${version}_${os}_${arch}${ext}"
-            echo "==> building $out"
-            GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build \
-              -trimpath \
-              -ldflags="-s -w -X main.Version=${version}" \
-              -o "$out" \
-              ./cmd/vigo
-          done
-          (cd dist && shasum -a 256 vigo_* > checksums.txt)
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+          version="${GITHUB_REF_NAME#v}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            go build -trimpath -ldflags="-s -w -X main.Version=${version}" -o vigo.exe ./cmd/vigo
+          else
+            go build -trimpath -ldflags="-s -w -X main.Version=${version}" -o vigo ./cmd/vigo
+          fi
+
+      - name: Stage archive contents
+        run: |
+          stage=vigo-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}
+          mkdir -p "$stage"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            cp vigo.exe "$stage/"
+          else
+            cp vigo "$stage/"
+          fi
+          cp LICENSE README.md CHANGELOG.md "$stage/"
+          echo "STAGE=$stage" >> "$GITHUB_ENV"
+
+      - name: Create archive
+        run: |
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            zip -r "${STAGE}.zip" "$STAGE"
+            echo "ARCHIVE=${STAGE}.zip" >> "$GITHUB_ENV"
+          else
+            tar -czf "${STAGE}.tar.gz" "$STAGE"
+            echo "ARCHIVE=${STAGE}.tar.gz" >> "$GITHUB_ENV"
+          fi
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: archive-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: ${{ env.ARCHIVE }}
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: publish release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          pattern: archive-*
+          merge-multiple: true
+
+      - name: Compute checksums
+        run: |
+          cd dist
+          shasum -a 256 vigo-* > checksums.txt
+          ls -la
+
+      - uses: softprops/action-gh-release@v3
         with:
           files: |
-            dist/vigo_*
+            dist/vigo-*
             dist/checksums.txt
           generate_release_notes: true
           fail_on_unmatched_files: true
+          draft: false
+          prerelease: false

@@ -1,6 +1,6 @@
 package vio
 
-import "github.com/tamnd/vigo/internal/event"
+import "github.com/tamnd/vigo/event"
 
 // Screen is the contract every backend implements: a sized cell grid, an
 // event source, and a flush primitive. The vio package ships two

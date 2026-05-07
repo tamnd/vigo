@@ -4,7 +4,7 @@
 // methods they need.
 package view
 
-import "github.com/tamnd/vigo/internal/event"
+import "github.com/tamnd/vigo/event"
 
 // State is a bitmask of view state flags. The set roughly matches
 // Borland Turbo Vision's sfXxx constants.
