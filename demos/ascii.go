@@ -96,6 +96,9 @@ func isPrintable(c byte) bool {
 	if c == 0x7f {
 		return false
 	}
+	if c >= 0x80 && c <= 0x9f {
+		return false
+	}
 	return true
 }
 
