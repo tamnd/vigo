@@ -51,4 +51,14 @@ var BorlandClassic = Palette{
 	{Fg: White, Bg: Blue},         // 22 input line normal
 	{Fg: White, Bg: Cyan},         // 23 input line focused
 	{Fg: Black, Bg: LightGray},    // 24 input line selection
+	{Fg: Black, Bg: Cyan},         // 25 cluster normal
+	{Fg: Black, Bg: Green},        // 26 cluster focused
+	{Fg: Yellow, Bg: Green},       // 27 cluster selected
+	{Fg: LightRed, Bg: Cyan},      // 28 cluster shortcut
+	{Fg: Yellow, Bg: Cyan},        // 29 scrollbar page
+	{Fg: Black, Bg: Green},        // 30 scrollbar arrows
+	{Fg: Black, Bg: Cyan},         // 31 list normal
+	{Fg: White, Bg: Green},        // 32 list focused
+	{Fg: White, Bg: Cyan},         // 33 list selected
+	{Fg: DarkGray, Bg: Cyan},      // 34 list disabled
 }

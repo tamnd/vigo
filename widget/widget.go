@@ -20,4 +20,14 @@ const (
 	SlotInputNormal    byte = 22
 	SlotInputFocused   byte = 23
 	SlotInputSelection byte = 24
+	SlotClusterNormal  byte = 25
+	SlotClusterFocused byte = 26
+	SlotClusterSelect  byte = 27
+	SlotClusterHotKey  byte = 28
+	SlotScrollPage     byte = 29
+	SlotScrollArrow    byte = 30
+	SlotListNormal     byte = 31
+	SlotListFocused    byte = 32
+	SlotListSelected   byte = 33
+	SlotListDisabled   byte = 34
 )
