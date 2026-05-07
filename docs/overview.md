@@ -1,84 +1,75 @@
-# 1597 — Vigo Overview
+# 1597. vigo overview
 
-`vigo` is a 100% faithful, modernized port of Borland's Turbo Vision integrated
-development environment, reimagined as a self-hosted Go IDE written in Go. It
-runs in any modern terminal, looks and feels like the Turbo Pascal 6.0 / Borland
-C++ 3.x IDE — blue desktop, double-line borders, F-key shortcuts, mouse-aware
-menus and dialogs — and provides a complete edit/build/debug workflow for Go
-programmers using `gopls` and `dlv` underneath.
+vigo is a port of Borland's Turbo Vision IDE, written in Go and run in
+a terminal. It targets Go programmers who want a self-hosted IDE with
+the look and feel of Turbo Pascal 6.0 / Borland C++ 3.x: blue desktop,
+double-line borders, drop shadows, F-key shortcuts, pull-down menus,
+modal dialogs. Code intelligence comes from gopls; debugging comes
+from dlv. The whole thing ships as a single static binary.
 
-## Vision
-
-> The fastest, most beautiful, most keyboard-driven Go IDE that fits in a
-> terminal — pixel-faithful to Turbo Vision, batteries-included, single binary,
-> zero ceremony.
-
-A developer should be able to:
+The intended workflow is small:
 
 ```
 go install github.com/tamnd/vigo/cmd/vigo@latest
 vigo .
 ```
 
-…and instantly land in a familiar Borland-style desktop with a working editor,
-project tree, build/run integration, gopls-powered code intelligence, and
-Delve-powered debugging — all keyboard-first, mouse-aware, themeable, and
-scriptable.
+That should land the user in a Borland-style desktop, with an editor,
+a project tree, build/run/test wired up, gopls-driven completion and
+diagnostics, and dlv-driven debugging.
 
 ## Goals
 
-1. **100% Turbo Vision look & feel.** Authentic palette, double/single-line
-   borders, drop-shadow windows, F1 contextual help, F10 menu activation, Alt-X
-   exit, modal dialogs with focus rings, status line with command hints.
-2. **Pure Go.** No CGO; one static binary. Built on `gdamore/tcell/v2`.
-3. **Faithful object model.** `View`, `Group`, `Window`, `Dialog`, `Application`,
-   `Desktop`, `MenuBar`, `StatusLine`, command system, palettes, streams — the
-   exact concepts from Turbo Vision 2.0, idiomatically rewritten for Go using
-   composition + small interfaces instead of inheritance.
-4. **First-class Go IDE.** Editor with syntax highlighting, gopls LSP for
-   navigation/completion/diagnostics/refactor, `go build|test|run` integration,
-   `dlv dap` debugger with breakpoints, watches, and stepping.
-5. **Cross-platform.** Linux, macOS, Windows (Windows Console + Terminal),
-   FreeBSD. Unicode by default, with CP437 fall-back glyph table for retro
-   terminals.
-6. **Hackable.** Plain text resource format for menus, palettes, and key maps.
-   Embedded scripting hook (Starlark) for extensions in v1.0+.
+1. Match Turbo Vision honestly. Same palette, same glyphs, same keys,
+   same modal dialog mechanics, same drop shadows. Mouse works but
+   the keyboard is the primary interface.
+2. Pure Go. No CGO. One binary per platform. Fast cold start.
+3. Faithful object model. View, Group, Window, Dialog, Application,
+   Desktop, MenuBar, StatusLine, command system, palettes, streams.
+   Class-based inheritance becomes embedding plus small interfaces in
+   Go, but the user-visible model is identical.
+4. First-class Go IDE. Editor with syntax highlighting, gopls for
+   navigation/completion/diagnostics/refactor, `go build|test|run`
+   integration, dlv DAP debugger with breakpoints, watches, stepping.
+5. Cross-platform. Linux, macOS, Windows (Windows Terminal),
+   FreeBSD. Unicode by default, with a CP437 fallback table for
+   terminals that can't render Unicode box-drawing glyphs.
+6. Hackable. Plain-text TOML for menus, palettes, key maps. Starlark
+   plugin host arrives in v0.7.
 
 ## Non-goals
 
-- Not a graphical (pixel) IDE; Vigo lives in a character grid.
-- Not a clone of VS Code / GoLand. Mouse is supported, but the keyboard is
-  authoritative; UI density and aesthetics follow Borland 1990, not modern
-  flat-design conventions.
-- Not a general LSP client framework. gopls is the primary, supported backend;
-  other languages may work but are not on the roadmap.
-- No bundled package manager, no AI features in v1.0 (left to plugins).
+- Not a graphical IDE. vigo lives in a character grid.
+- Not a clone of VS Code, GoLand, or Neovim. Mouse is supported,
+  density and aesthetics follow Borland 1990.
+- Not a general LSP client framework. gopls is the supported backend.
+- No bundled package manager, no AI features in 1.0. Both are
+  reasonable plugin candidates after 1.0.
 
 ## Why now
 
-- Terminal renaissance: `tcell`, ratatui, BubbleTea, magiblot/tvision, Zellij
-  prove that high-density TUIs are back in fashion.
-- Go's gopls + Delve DAP make a self-hosted Go IDE genuinely feasible without
-  reimplementing parsers or debuggers.
-- Existing Turbo Vision ports (magiblot/tvision in C++, turbo-vision in Rust)
-  have proven the design ports cleanly to modern memory-safe languages — but
-  there is no canonical Go port.
+- Terminal UIs are healthy again: tcell, ratatui, bubbletea, magiblot's
+  tvision, Zellij. The toolchain is good.
+- gopls and `dlv dap` make a self-hosted Go IDE feasible without
+  reinventing parsers or debuggers.
+- Existing Turbo Vision ports cover C++ (magiblot/tvision) and Rust
+  (turbo-vision-4-rust). There is no Go port.
 
-## High-level shape
+## Reference layout
 
 ```
-+--[≡]--File--Edit--Search--Run--Compile--Debug--Project--Options--Window--Help--+
++--[=]--File--Edit--Search--Run--Compile--Debug--Project--Options--Window--Help--+
 |                                                                                |
-|   ╔══[•]═ main.go ═══════════════════════════════════════════════════════ 1 ╗  |
-|   ║ package main                                                            ║  |
-|   ║                                                                         ║  |
-|   ║ import "fmt"                                                            ║  |
-|   ║                                                                         ║  |
-|   ║ func main() {                                                           ║  |
-|   ║     fmt.Println("hello, vigo")                                          ║  |
-|   ║ }                                                                       ║  |
-|   ║                                                                         ║  |
-|   ╚═════════════════════════════════════════════ 6:1 ════════════ INS ══════╝  |
+|   ##[*]= main.go ====================================================== 1 ##   |
+|   #  package main                                                          #   |
+|   #                                                                        #   |
+|   #  import "fmt"                                                          #   |
+|   #                                                                        #   |
+|   #  func main() {                                                         #   |
+|   #      fmt.Println("hello, vigo")                                        #   |
+|   #  }                                                                     #   |
+|   #                                                                        #   |
+|   ##======================================== 6:1 =============== INS =====##   |
 |                                                                                |
 +--F1 Help--F2 Save--F3 Open--F5 Zoom--F6 Switch--F9 Make--F10 Menu--Alt-X Exit--+
 ```
@@ -86,12 +77,13 @@ scriptable.
 ## References
 
 - Borland, *Turbo Vision Programmer's Guide*, 1990 (bitsavers PDF).
-- magiblot/tvision — modern C++ port with Unicode.
-- aovestdipaperino/turbo-vision-4-rust — Rust port (1.0 in 2025).
-- gdamore/tcell, rivo/tview — Go terminal foundation.
-- gopls (`golang.org/x/tools/gopls`) and Delve `dlv dap`.
+- magiblot/tvision, modern C++ port with Unicode.
+- aovestdipaperino/turbo-vision-4-rust, Rust port (1.0 in 2025).
+- gdamore/tcell and rivo/tview, Go terminal foundation.
+- gopls (`golang.org/x/tools/gopls`) and Delve (`dlv dap`).
 
-See:
-- 1598_vigo_roadmap.md — phased delivery plan.
-- 1599_vigo_architecture.md — layered design.
-- 1600..1607 — per-version specifications.
+See also:
+
+- `1598_vigo_roadmap.md`, phased delivery plan.
+- `1599_vigo_architecture.md`, layered design.
+- `1600`..`1607`, per-version specifications.
