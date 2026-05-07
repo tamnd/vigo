@@ -21,6 +21,9 @@ const (
 	CmdCancel
 	CmdYes
 	CmdNo
+	CmdScrollBarChanged
+	CmdScrollBarClicked
+	CmdSelectWindowNum
 
 	CmdUser CommandID = 100
 )
