@@ -17,6 +17,10 @@ const (
 	CmdNext
 	CmdPrev
 	CmdHelp
+	CmdOk
+	CmdCancel
+	CmdYes
+	CmdNo
 
 	CmdUser CommandID = 100
 )
