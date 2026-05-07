@@ -54,8 +54,10 @@ func NewMenuBox(x, y int, items []Item, enabler *cmd.Enabler) *MenuBox {
 }
 
 // Result returns CmdNone while the menu is still open, CmdCancel when
-// the user closed it without picking, or CmdMenu when a row fired a
-// command (which is then available via Chosen).
+// the user closed it without picking, CmdMenu when a row fired a
+// command (the bound command is available via Chosen), or CmdNext /
+// CmdPrev when the user pressed ArrowRight / ArrowLeft on a non-
+// submenu row to walk to the adjacent Bar item.
 func (m *MenuBox) Result() event.CommandID { return m.result }
 
 // Chosen returns the command attached to the activated row, or
@@ -224,6 +226,16 @@ func (m *MenuBox) handleKey(e *event.Event) {
 		e.Clear()
 	case event.KeyEnter:
 		m.activate(m.sel)
+		e.Clear()
+	case event.KeyArrowRight:
+		if m.sel >= 0 && m.sel < len(m.Items) && len(m.Items[m.sel].Children) > 0 {
+			m.openChild = true
+		} else {
+			m.result = event.CmdNext
+		}
+		e.Clear()
+	case event.KeyArrowLeft:
+		m.result = event.CmdPrev
 		e.Clear()
 	case event.KeyRune:
 		if idx := m.findHotkey(e.Key.Rune); idx >= 0 {
