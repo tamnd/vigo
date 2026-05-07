@@ -122,11 +122,25 @@ func (f *Frame) drawTitle(s *vio.Surface, title string, attr vio.Attr) {
 	}
 	x := f.Bounds.X + (f.Bounds.W-len(runes))/2
 	y := f.Bounds.Y
-	s.Set(x-1, y, ' ', attr)
+	leftPad := x - 1
+	rightPad := x + len(runes)
+	closeRight := -1
+	if f.flags&FlagClose != 0 && f.Bounds.W >= 5 {
+		closeRight = f.Bounds.X + 3 // last column of "[■]"
+	}
+	zoomLeft := -1
+	if f.flags&FlagZoom != 0 && f.Bounds.W >= 7 {
+		zoomLeft = f.Bounds.Right() - 4 // first column of "[↕]"
+	}
+	if leftPad > closeRight {
+		s.Set(leftPad, y, ' ', attr)
+	}
 	for i, r := range runes {
 		s.Set(x+i, y, r, attr)
 	}
-	s.Set(x+len(runes), y, ' ', attr)
+	if zoomLeft < 0 || rightPad < zoomLeft {
+		s.Set(rightPad, y, ' ', attr)
+	}
 }
 
 // HandleEvent ignores everything; frames are decoration only in v0.2.1.
