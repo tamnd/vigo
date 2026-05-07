@@ -21,11 +21,12 @@ type Calendar struct {
 	grid   *calendarGrid
 }
 
-// CalDefaultBounds is the calendar's default footprint: 22x10 leaves
-// room for the seven-column day grid plus a header and frame.
+// CalDefaultBounds is the calendar's default footprint: 25x10 leaves
+// room for the seven-column day grid (7*3 cells) plus a header and
+// frame.
 //
 //nolint:gochecknoglobals // immutable default
-var CalDefaultBounds = vio.R(2, 2, 22, 10)
+var CalDefaultBounds = vio.R(2, 2, 25, 10)
 
 // NewCalendar returns a Calendar window opened to today's month.
 func NewCalendar(bounds vio.Rect) *Calendar {
@@ -159,6 +160,9 @@ func (g *calendarGrid) Draw(s *vio.Surface) {
 		y := g.Bounds.Y + 1 + row
 		if y >= g.Bounds.Bottom() {
 			break
+		}
+		if x+2 > g.Bounds.Right() {
+			continue
 		}
 		attr := normal
 		if d == g.cursor.Day() {
