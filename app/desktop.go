@@ -18,7 +18,7 @@ type Background struct {
 // rune. Pass 0 for the Turbo Vision default (a light shade block).
 func NewBackground(r vio.Rect, pattern rune) *Background {
 	if pattern == 0 {
-		pattern = vio.ShadeMedium
+		pattern = vio.ShadeLight
 	}
 	v := view.NewView(r)
 	v.GrowMode = view.GrowAll
