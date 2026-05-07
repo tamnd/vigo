@@ -11,13 +11,13 @@ package widget
 // these but callers may override PaletteIndex if a host theme adds
 // extra slots.
 const (
-	SlotDialogText      byte = 14
-	SlotDialogShortcut  byte = 17
-	SlotButtonNormal    byte = 18
-	SlotButtonFocused   byte = 19
-	SlotButtonDisabled  byte = 20
-	SlotButtonShortcut  byte = 21
-	SlotInputNormal     byte = 22
-	SlotInputFocused    byte = 23
-	SlotInputSelection  byte = 24
+	SlotDialogText     byte = 14
+	SlotDialogShortcut byte = 17
+	SlotButtonNormal   byte = 18
+	SlotButtonFocused  byte = 19
+	SlotButtonDisabled byte = 20
+	SlotButtonShortcut byte = 21
+	SlotInputNormal    byte = 22
+	SlotInputFocused   byte = 23
+	SlotInputSelection byte = 24
 )

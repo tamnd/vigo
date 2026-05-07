@@ -35,11 +35,17 @@ const FlagsAll = FlagMove | FlagGrow | FlagClose | FlagZoom
 // A Frame's bounds are the same rectangle as its owning Window; the
 // frame paints only the perimeter and leaves the interior untouched
 // for the window's content children.
+//
+// PassiveSlot and ActiveSlot let a Dialog point the frame at a
+// different palette pair (e.g. 15/16 for the gray-on-gray dialog
+// frame) without touching the regular window theme.
 type Frame struct {
 	*view.View
 
-	Title string
-	flags Flags
+	Title       string
+	flags       Flags
+	PassiveSlot byte
+	ActiveSlot  byte
 }
 
 // NewFrame returns a frame sized to bounds, with the given decoration
@@ -49,7 +55,12 @@ func NewFrame(bounds vio.Rect, flags Flags) *Frame {
 	v := view.NewView(bounds)
 	v.GrowMode = view.GrowHiX | view.GrowHiY
 	v.EventMask = 0 // frames do not consume events directly
-	return &Frame{View: v, flags: flags}
+	return &Frame{
+		View:        v,
+		flags:       flags,
+		PassiveSlot: 10,
+		ActiveSlot:  11,
+	}
 }
 
 // Flags returns the frame's decoration flags.
@@ -58,9 +69,9 @@ func (f *Frame) Flags() Flags { return f.flags }
 // Draw paints the box, title, and corner glyphs.
 func (f *Frame) Draw(s *vio.Surface) {
 	active := f.HasState(view.StateActive)
-	slot := byte(10) // window frame inactive
+	slot := f.PassiveSlot
 	if active {
-		slot = 11 // window frame active
+		slot = f.ActiveSlot
 	}
 	attr := f.MapColor(slot)
 	border := vio.Double
