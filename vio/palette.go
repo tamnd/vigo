@@ -40,4 +40,15 @@ var BorlandClassic = Palette{
 	{Fg: Yellow, Bg: Blue},        // 11 window frame active
 	{Fg: White, Bg: Blue},         // 12 window text
 	{Fg: DarkGray, Bg: Black},     // 13 shadow fill
+	{Fg: Black, Bg: LightGray},    // 14 dialog text (static, label)
+	{Fg: Black, Bg: LightGray},    // 15 dialog frame inactive
+	{Fg: White, Bg: LightGray},    // 16 dialog frame active
+	{Fg: LightRed, Bg: LightGray}, // 17 dialog shortcut
+	{Fg: Black, Bg: Green},        // 18 button normal
+	{Fg: White, Bg: Green},        // 19 button focused
+	{Fg: DarkGray, Bg: LightGray}, // 20 button disabled
+	{Fg: Yellow, Bg: Green},       // 21 button shortcut
+	{Fg: White, Bg: Blue},         // 22 input line normal
+	{Fg: White, Bg: Cyan},         // 23 input line focused
+	{Fg: Black, Bg: LightGray},    // 24 input line selection
 }
