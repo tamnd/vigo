@@ -227,6 +227,13 @@ func (g *Group) ChangeBounds(r vio.Rect) {
 }
 
 func growChildBounds(b vio.Rect, mode GrowMode, oldOwner, newOwner vio.Rect) vio.Rect {
+	// Child bounds are absolute, so when the owner shifts in X/Y every
+	// child shifts with it regardless of GrowMode. Without this, dragging
+	// a window leaves the content children pinned at their original
+	// screen position while only the frame follows the cursor.
+	b.X += newOwner.X - oldOwner.X
+	b.Y += newOwner.Y - oldOwner.Y
+
 	dx := newOwner.W - oldOwner.W
 	dy := newOwner.H - oldOwner.H
 	if mode&GrowLoX != 0 {

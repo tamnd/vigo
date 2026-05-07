@@ -229,6 +229,27 @@ func TestChangeBoundsPropagatesGrow(t *testing.T) {
 	}
 }
 
+// TestChangeBoundsTranslatesChildren guards the regression where dragging
+// a window moved the frame but left content children pinned to their
+// original screen position. Children store absolute bounds, so a pure
+// owner move (size unchanged) must shift every child by the same delta.
+func TestChangeBoundsTranslatesChildren(t *testing.T) {
+	g := NewGroup(vio.R(10, 5, 20, 10))
+	a := NewView(vio.R(11, 6, 5, 3))
+	a.GrowMode = GrowFixed
+	b := NewView(vio.R(20, 10, 8, 4))
+	b.GrowMode = GrowFixed
+	g.Insert(a)
+	g.Insert(b)
+	g.ChangeBounds(vio.R(30, 8, 20, 10))
+	if a.Bounds != (vio.R(31, 9, 5, 3)) {
+		t.Fatalf("a not translated: %+v", a.Bounds)
+	}
+	if b.Bounds != (vio.R(40, 13, 8, 4)) {
+		t.Fatalf("b not translated: %+v", b.Bounds)
+	}
+}
+
 func TestChangeBoundsClampsNegative(t *testing.T) {
 	g := NewGroup(vio.R(0, 0, 10, 10))
 	v := NewView(vio.R(0, 0, 5, 5))
