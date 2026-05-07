@@ -26,11 +26,11 @@ type Puzzle struct {
 	shuffle func() [PuzzleSize * PuzzleSize]int
 }
 
-// PuzzleDefaultBounds is sized to fit a 4x4 grid of 4-wide cells
-// plus the status row.
+// PuzzleDefaultBounds is sized to fit a 4x4 grid of 4-wide cells plus
+// the status row "Moves: NNN  in play" (or "SOLVED").
 //
 //nolint:gochecknoglobals // immutable default
-var PuzzleDefaultBounds = vio.R(2, 2, PuzzleSize*4+4, PuzzleSize+5)
+var PuzzleDefaultBounds = vio.R(2, 2, 23, PuzzleSize+5)
 
 // NewPuzzle returns a Puzzle window with a randomly shuffled board.
 func NewPuzzle(bounds vio.Rect) *Puzzle {
