@@ -128,8 +128,18 @@ func (g *Group) HandleEvent(e *event.Event) {
 		}
 	}
 
-	// Phase 2: focused dispatch.
-	if cur := g.Current(); cur != nil && classMatches(cur, e) {
+	// Phase 2: focused dispatch. Mouse-down events route by hit-test
+	// instead so a click reaches whichever selectable child sits under
+	// the cursor, not just the focused one. Without this a Calculator
+	// or Dialog button only fires when it already has focus, which
+	// makes the whole window feel like a mock-up. Other classes
+	// (keys, commands, broadcasts) keep their focused-child semantics.
+	if e.What == event.ClassMouseDown {
+		g.dispatchMouse(e)
+		if e.What == event.ClassNothing {
+			return
+		}
+	} else if cur := g.Current(); cur != nil && classMatches(cur, e) {
 		cur.HandleEvent(e)
 		if e.What == event.ClassNothing {
 			return
@@ -197,6 +207,36 @@ func (g *Group) advanceFocus(step int) {
 			g.SetCurrent(idx)
 			return
 		}
+	}
+}
+
+// dispatchMouse routes a ClassMouseDown to the topmost selectable
+// child whose bounds contain the click. If no selectable child
+// matches, the event falls back to the focused child so groups that
+// rely on the focused-dispatch convention (Desktop, modal sub-loops)
+// keep working. Hit-testing intentionally skips non-selectable
+// children: Frames, StaticText, and other decoration views never
+// consume mouse-downs, and routing past them lets the click reach
+// the live control underneath.
+func (g *Group) dispatchMouse(e *event.Event) {
+	p := vio.Point{X: e.Mouse.X, Y: e.Mouse.Y}
+	for i := len(g.children) - 1; i >= 0; i-- {
+		c := g.children[i]
+		base := c.Base()
+		if base.Options&OptSelectable == 0 {
+			continue
+		}
+		if !classMatches(c, e) {
+			continue
+		}
+		if !base.Bounds.Contains(p) {
+			continue
+		}
+		c.HandleEvent(e)
+		return
+	}
+	if cur := g.Current(); cur != nil && classMatches(cur, e) {
+		cur.HandleEvent(e)
 	}
 }
 
