@@ -107,34 +107,47 @@ func SaveTOML(w io.Writer, menus []Item) error {
 		if _, err := bw.WriteString("[[menu]]\n"); err != nil {
 			return err
 		}
-		writeItemFields(bw, m, false)
+		if err := writeItemFields(bw, m, false); err != nil {
+			return err
+		}
 		for _, child := range m.Children {
 			if _, err := bw.WriteString("\n  [[menu.items]]\n"); err != nil {
 				return err
 			}
-			writeItemFields(bw, child, true)
+			if err := writeItemFields(bw, child, true); err != nil {
+				return err
+			}
 		}
 	}
 	return bw.Flush()
 }
 
-func writeItemFields(bw *bufio.Writer, it Item, indent bool) {
+func writeItemFields(bw *bufio.Writer, it Item, indent bool) error {
 	prefix := ""
 	if indent {
 		prefix = "  "
 	}
 	if it.Sep {
-		fmt.Fprintf(bw, "%ssep = true\n", prefix)
-		return
+		_, err := fmt.Fprintf(bw, "%ssep = true\n", prefix)
+		return err
 	}
-	fmt.Fprintf(bw, "%stitle = %q\n", prefix, it.Title)
-	fmt.Fprintf(bw, "%shotkey = %d\n", prefix, it.Hotkey)
+	if _, err := fmt.Fprintf(bw, "%stitle = %q\n", prefix, it.Title); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(bw, "%shotkey = %d\n", prefix, it.Hotkey); err != nil {
+		return err
+	}
 	if it.Cmd != event.CmdNone {
-		fmt.Fprintf(bw, "%scmd = %d\n", prefix, uint16(it.Cmd))
+		if _, err := fmt.Fprintf(bw, "%scmd = %d\n", prefix, uint16(it.Cmd)); err != nil {
+			return err
+		}
 	}
 	if it.Shortcut != "" {
-		fmt.Fprintf(bw, "%sshortcut = %q\n", prefix, it.Shortcut)
+		if _, err := fmt.Fprintf(bw, "%sshortcut = %q\n", prefix, it.Shortcut); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func stripComment(s string) string {
