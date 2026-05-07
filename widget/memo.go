@@ -70,7 +70,7 @@ func (m *Memo) SetString(s string) {
 // are shared with the memo; callers must not mutate concurrently.
 func (m *Memo) Lines() [][]rune { return m.lines }
 
-// Cursor returns the (line, col) cursor position.
+// CursorPos returns the (line, col) cursor position.
 func (m *Memo) CursorPos() (int, int) { return m.curLine, m.curCol }
 
 // TopLine returns the first visible line index.

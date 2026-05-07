@@ -235,14 +235,19 @@ func NewRadioButtons(bounds vio.Rect, items []string) *RadioButtons {
 }
 
 // Mark reports whether item i is the chosen one.
-func (r *RadioButtons) Mark(i int) bool { return uint32(i) == r.Value }
+func (r *RadioButtons) Mark(i int) bool {
+	if i < 0 {
+		return false
+	}
+	return uint32(i) == r.Value //nolint:gosec // i bounded by len(titles)
+}
 
 // Press makes item i the chosen one.
 func (r *RadioButtons) Press(i int) {
 	if i < 0 || i >= len(r.titles) {
 		return
 	}
-	r.Value = uint32(i)
+	r.Value = uint32(i) //nolint:gosec // bounded by titles length
 }
 
 // Draw paints the radio-button list.
