@@ -14,10 +14,13 @@ import (
 
 // Item is a single label on the menu bar or a row in a pull-down. Hotkey
 // is the index of the highlighted character within Title, or -1 for
-// none. Cmd is the command fired when the row is activated. Shortcut
-// is the right-aligned accelerator label (e.g. "F3"). Children, when
-// non-empty, marks this row as a submenu trigger. Sep == true renders
-// as a horizontal separator and ignores every other field.
+// none; Title may also wrap the hot rune in '~' markers
+// (e.g. "~F~ile") in which case the markers are stripped at render and
+// the parsed position takes precedence. Cmd is the command fired when
+// the row is activated. Shortcut is the right-aligned accelerator
+// label (e.g. "F3"). Children, when non-empty, marks this row as a
+// submenu trigger. Sep == true renders as a horizontal separator and
+// ignores every other field.
 type Item struct {
 	Title    string
 	Hotkey   int
@@ -25,6 +28,38 @@ type Item struct {
 	Shortcut string
 	Children []Item
 	Sep      bool
+}
+
+// display returns the rendered title (with '~' markers stripped) and
+// the rune index of the hotkey within it. A title containing '~x~'
+// markers takes precedence over the explicit Hotkey field; otherwise
+// Hotkey is returned unchanged.
+func (it Item) display() (string, int) {
+	clean, hot := parseMnemonic(it.Title)
+	if hot >= 0 {
+		return clean, hot
+	}
+	return clean, it.Hotkey
+}
+
+// parseMnemonic strips '~x~' mnemonic markers from s. Returns the plain
+// title and the rune index of the marked character within it, or -1 if
+// no markers were present. Stray '~' runes are dropped silently.
+func parseMnemonic(s string) (string, int) {
+	out := make([]rune, 0, len(s))
+	hot := -1
+	inMarker := false
+	for _, r := range s {
+		if r == '~' {
+			if !inMarker && hot < 0 {
+				hot = len(out)
+			}
+			inMarker = !inMarker
+			continue
+		}
+		out = append(out, r)
+	}
+	return string(out), hot
 }
 
 // MenuRunner runs an open MenuBox to completion. The host (typically
@@ -97,7 +132,8 @@ func (b *Bar) itemX(i int) int {
 		if j == i {
 			return x
 		}
-		x += len([]rune(it.Title)) + 2
+		title, _ := it.display()
+		x += len([]rune(title)) + 2
 	}
 	return x
 }
@@ -107,7 +143,8 @@ func (b *Bar) itemX(i int) int {
 func (b *Bar) hitItem(x int) int {
 	cur := b.Bounds.X + 1
 	for i, it := range b.Items {
-		w := len([]rune(it.Title))
+		title, _ := it.display()
+		w := len([]rune(title))
 		if x >= cur && x < cur+w {
 			return i
 		}
@@ -121,14 +158,15 @@ func (b *Bar) hitItem(x int) int {
 func (b *Bar) findHotkey(r rune) int {
 	target := unicode.ToLower(r)
 	for i, it := range b.Items {
-		if it.Hotkey < 0 {
+		title, hot := it.display()
+		if hot < 0 {
 			continue
 		}
-		runes := []rune(it.Title)
-		if it.Hotkey >= len(runes) {
+		runes := []rune(title)
+		if hot >= len(runes) {
 			continue
 		}
-		if unicode.ToLower(runes[it.Hotkey]) == target {
+		if unicode.ToLower(runes[hot]) == target {
 			return i
 		}
 	}
@@ -252,13 +290,14 @@ func (b *Bar) Draw(s *vio.Surface) {
 	x := b.Bounds.X + 1
 	y := b.Bounds.Y
 	for _, it := range b.Items {
-		runes := []rune(it.Title)
+		title, hot := it.display()
+		runes := []rune(title)
 		for i, r := range runes {
 			if x >= b.Bounds.Right() {
 				return
 			}
 			attr := normal
-			if i == it.Hotkey {
+			if i == hot {
 				attr = shortcut
 			}
 			s.Set(x, y, r, attr)
