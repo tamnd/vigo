@@ -9,11 +9,19 @@ import (
 	"github.com/tamnd/vigo/vio"
 )
 
-// Item is a single label on the menu bar. Hotkey is the index of the
-// highlighted character within Title, or -1 for none.
+// Item is a single label on the menu bar or a row in a pull-down. Hotkey
+// is the index of the highlighted character within Title, or -1 for
+// none. Cmd is the command fired when the row is activated. Shortcut
+// is the right-aligned accelerator label (e.g. "F3"). Children, when
+// non-empty, marks this row as a submenu trigger. Sep == true renders
+// as a horizontal separator and ignores every other field.
 type Item struct {
-	Title  string
-	Hotkey int
+	Title    string
+	Hotkey   int
+	Cmd      event.CommandID
+	Shortcut string
+	Children []Item
+	Sep      bool
 }
 
 // Bar is the horizontal strip of menu titles painted at the top of the
