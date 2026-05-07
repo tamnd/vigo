@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: true
+      - name: Build cross-platform binaries
+        run: |
+          mkdir -p dist
+          version=${GITHUB_REF_NAME#v}
+          for os_arch in \
+            linux/amd64 linux/arm64 \
+            darwin/amd64 darwin/arm64 \
+            windows/amd64 windows/arm64 \
+            freebsd/amd64; do
+            os="${os_arch%/*}"
+            arch="${os_arch#*/}"
+            ext=""
+            if [ "$os" = "windows" ]; then ext=".exe"; fi
+            out="dist/vigo_${version}_${os}_${arch}${ext}"
+            echo "==> building $out"
+            GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build \
+              -trimpath \
+              -ldflags="-s -w -X main.Version=${version}" \
+              -o "$out" \
+              ./cmd/vigo
+          done
+          (cd dist && shasum -a 256 vigo_* > checksums.txt)
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/vigo_*
+            dist/checksums.txt
+          generate_release_notes: true
+          fail_on_unmatched_files: true

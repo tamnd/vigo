@@ -1,0 +1,29 @@
+# Binaries
+/vigo
+/dist/
+/bin/
+*.exe
+*.test
+*.out
+
+# Coverage
+coverage.txt
+coverage.out
+coverage.html
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Per-project Vigo state
+/.vigo/
+
+# goreleaser
+/dist/
+
+# Local dev
+*.local
+.env
