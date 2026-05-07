@@ -9,6 +9,8 @@
 package dialog
 
 import (
+	"github.com/tamnd/vigo/event"
+	"github.com/tamnd/vigo/view"
 	"github.com/tamnd/vigo/vio"
 	"github.com/tamnd/vigo/widget"
 	"github.com/tamnd/vigo/window"
@@ -24,6 +26,9 @@ const buttonRowMargin = 2
 // placement helper.
 type Dialog struct {
 	*window.Window
+
+	defaultBtn *widget.Button
+	cancelBtn  *widget.Button
 }
 
 // New returns a Dialog sized to bounds. The frame uses dialog slots
@@ -36,6 +41,20 @@ func New(bounds vio.Rect, title string) *Dialog {
 	w.Frame().ActiveSlot = 16
 	return &Dialog{Window: w}
 }
+
+// SetDefaultButton remembers b as the dialog's default action so
+// pressing Enter anywhere in the dialog fires it. Pass nil to clear.
+func (d *Dialog) SetDefaultButton(b *widget.Button) { d.defaultBtn = b }
+
+// SetCancelButton remembers b as the dialog's cancel action so
+// pressing Esc anywhere in the dialog fires it. Pass nil to clear.
+func (d *Dialog) SetCancelButton(b *widget.Button) { d.cancelBtn = b }
+
+// DefaultButton returns the button registered via SetDefaultButton, or nil.
+func (d *Dialog) DefaultButton() *widget.Button { return d.defaultBtn }
+
+// CancelButton returns the button registered via SetCancelButton, or nil.
+func (d *Dialog) CancelButton() *widget.Button { return d.cancelBtn }
 
 // PlaceButtons inserts the given buttons in a centered row along the
 // bottom of the client rectangle. Buttons keep the size set by the
@@ -63,4 +82,28 @@ func (d *Dialog) PlaceButtons(buttons ...*widget.Button) {
 		d.Insert(b)
 		x += nb.W + 1
 	}
+}
+
+// HandleEvent intercepts dialog-level shortcuts before falling back to
+// the Window dispatch. Enter fires the registered default button; Esc
+// fires the registered cancel button. A disabled button is skipped so
+// the rest of the dispatch chain still gets the keystroke.
+func (d *Dialog) HandleEvent(e *event.Event) {
+	if e.What == event.ClassKey {
+		switch e.Key.Key {
+		case event.KeyEnter:
+			if d.defaultBtn != nil && !d.defaultBtn.HasState(view.StateDisabled) {
+				d.defaultBtn.Press()
+				e.Clear()
+				return
+			}
+		case event.KeyEsc:
+			if d.cancelBtn != nil && !d.cancelBtn.HasState(view.StateDisabled) {
+				d.cancelBtn.Press()
+				e.Clear()
+				return
+			}
+		}
+	}
+	d.Window.HandleEvent(e)
 }
