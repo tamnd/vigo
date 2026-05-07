@@ -109,6 +109,60 @@ func (a *Application) ClearModal() { a.modal = nil }
 // Modal returns the currently active modal view, or nil.
 func (a *Application) Modal() view.Viewer { return a.modal }
 
+// ModalView is implemented by views ExecView can drive: each iteration
+// the loop checks Result; a non-zero value ends the sub-loop and is
+// returned. Dialog satisfies this interface.
+type ModalView interface {
+	view.Viewer
+	Result() event.CommandID
+}
+
+// ExecView shows v as a modal sub-loop and blocks until it closes.
+// The view is inserted into the desktop, set as the modal slot, and
+// drawn on every iteration. The loop exits when v.Result() returns a
+// non-zero command, when the screen channel closes, or when Quit is
+// called; it returns the close command (CmdCancel as a fall-back).
+func (a *Application) ExecView(v ModalView) event.CommandID {
+	if v == nil {
+		return event.CmdCancel
+	}
+	a.desktop.Insert(v)
+	a.SetModal(v)
+	defer func() {
+		a.ClearModal()
+		a.desktop.Remove(v)
+	}()
+
+	a.draw()
+	if err := a.screen.Show(a.surface); err != nil {
+		return event.CmdCancel
+	}
+
+	events := a.screen.Events()
+	for !a.quit.Load() {
+		if r := v.Result(); r != event.CmdNone {
+			return r
+		}
+		select {
+		case e, ok := <-events:
+			if !ok {
+				return event.CmdCancel
+			}
+			a.process(e)
+		case e := <-a.posted:
+			a.process(e)
+		}
+		if r := v.Result(); r != event.CmdNone {
+			return r
+		}
+		a.draw()
+		if err := a.screen.Show(a.surface); err != nil {
+			return event.CmdCancel
+		}
+	}
+	return event.CmdCancel
+}
+
 // Run drives the event loop until Quit is called or the screen channel
 // closes. It returns the error returned by Screen.Show, or nil.
 func (a *Application) Run() error {

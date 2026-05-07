@@ -29,6 +29,8 @@ type Dialog struct {
 
 	defaultBtn *widget.Button
 	cancelBtn  *widget.Button
+
+	result event.CommandID
 }
 
 // New returns a Dialog sized to bounds. The frame uses dialog slots
@@ -39,7 +41,9 @@ func New(bounds vio.Rect, title string) *Dialog {
 	w.PaletteIndex = widget.SlotDialogText
 	w.Frame().PassiveSlot = 15
 	w.Frame().ActiveSlot = 16
-	return &Dialog{Window: w}
+	d := &Dialog{Window: w}
+	d.Insert(newCloseSink(d))
+	return d
 }
 
 // SetDefaultButton remembers b as the dialog's default action so
@@ -55,6 +59,29 @@ func (d *Dialog) DefaultButton() *widget.Button { return d.defaultBtn }
 
 // CancelButton returns the button registered via SetCancelButton, or nil.
 func (d *Dialog) CancelButton() *widget.Button { return d.cancelBtn }
+
+// Result returns the command that closed the dialog, or 0 if the
+// dialog has not been closed yet. ExecView reads this to decide when
+// the modal sub-loop should exit.
+func (d *Dialog) Result() event.CommandID { return d.result }
+
+// Reset clears the close result so the same Dialog instance can be
+// shown a second time.
+func (d *Dialog) Reset() { d.result = 0 }
+
+// EndModal records cmd as the dialog's close result. Hosts call this
+// when they want to dismiss the dialog programmatically; the modal
+// sub-loop exits on the next iteration.
+func (d *Dialog) EndModal(cmd event.CommandID) { d.result = cmd }
+
+// isEndModalCommand reports whether cmd should close the dialog.
+func isEndModalCommand(cmd event.CommandID) bool {
+	switch cmd {
+	case event.CmdOk, event.CmdCancel, event.CmdYes, event.CmdNo, event.CmdClose:
+		return true
+	}
+	return false
+}
 
 // PlaceButtons inserts the given buttons in a centered row along the
 // bottom of the client rectangle. Buttons keep the size set by the
@@ -87,7 +114,9 @@ func (d *Dialog) PlaceButtons(buttons ...*widget.Button) {
 // HandleEvent intercepts dialog-level shortcuts before falling back to
 // the Window dispatch. Enter fires the registered default button; Esc
 // fires the registered cancel button. A disabled button is skipped so
-// the rest of the dispatch chain still gets the keystroke.
+// the rest of the dispatch chain still gets the keystroke. Command
+// events that close the dialog (CmdOk, CmdCancel, CmdYes, CmdNo,
+// CmdClose) are also captured here and stashed as the close result.
 func (d *Dialog) HandleEvent(e *event.Event) {
 	if e.What == event.ClassKey {
 		switch e.Key.Key {
@@ -106,4 +135,34 @@ func (d *Dialog) HandleEvent(e *event.Event) {
 		}
 	}
 	d.Window.HandleEvent(e)
+}
+
+// closeSink is a hidden post-process child that captures close
+// commands fired by buttons inside the dialog. Without it, the
+// command bus inside the embedded *view.Group would deliver the
+// command to the focused button and then drop it, since nothing else
+// inside the dialog cares about commands.
+type closeSink struct {
+	*view.View
+	dialog *Dialog
+}
+
+func newCloseSink(d *Dialog) *closeSink {
+	v := view.NewView(vio.Rect{})
+	v.Options |= view.OptPostProcess
+	v.EventMask = event.ClassCommand
+	return &closeSink{View: v, dialog: d}
+}
+
+func (s *closeSink) Draw(*vio.Surface) {}
+
+func (s *closeSink) HandleEvent(e *event.Event) {
+	if e.What != event.ClassCommand {
+		return
+	}
+	if !isEndModalCommand(e.Msg.Command) {
+		return
+	}
+	s.dialog.result = e.Msg.Command
+	e.Clear()
 }
