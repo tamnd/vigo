@@ -15,7 +15,7 @@ import (
 const PuzzleSize = 4
 
 // Puzzle is the classic 4x4 sliding tile puzzle. Tiles are numbered
-// 1..15 with one empty slot (0). Arrow keys slide the neighbouring
+// 1..15 with one empty slot (0). Arrow keys slide the neighboring
 // tile into the empty slot. R resets to a freshly shuffled board.
 type Puzzle struct {
 	*window.Window
@@ -102,7 +102,7 @@ func (p *Puzzle) handleKey(e *event.Event) bool {
 }
 
 // arrowDelta maps an arrow key to the (dx, dy) the BLANK should move.
-// The neighbour tile in the opposite direction slides into the blank.
+// The neighbor tile in the opposite direction slides into the blank.
 func arrowDelta(k event.Key) (int, int, bool) {
 	switch k {
 	case event.KeyArrowLeft:
@@ -160,7 +160,7 @@ func (b *puzzleBoard) findBlank() {
 	}
 }
 
-// slide moves the blank by (dx, dy), bringing the neighbour into the
+// slide moves the blank by (dx, dy), bringing the neighbor into the
 // vacated slot. Returns false if the move would leave the board.
 func (b *puzzleBoard) slide(dx, dy int) bool {
 	nc, nr := b.blankCol+dx, b.blankRow+dy
@@ -227,7 +227,7 @@ func randomShuffle() [PuzzleSize * PuzzleSize]int {
 	b.findBlank()
 	deltas := [4][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
 	for range 200 {
-		d := deltas[rand.IntN(4)]
+		d := deltas[rand.IntN(4)] //nolint:gosec // shuffling a toy board, not a security boundary
 		b.slide(d[0], d[1])
 	}
 	return b.tiles

@@ -10,31 +10,29 @@ import (
 	"github.com/tamnd/vigo/window"
 )
 
-// AsciiTable shows the 256-glyph code page in a 16x16 grid. Arrow
+// ASCIITable shows the 256-glyph code page in a 16x16 grid. Arrow
 // keys move the cursor; the status line under the grid shows the
 // selected codepoint as decimal, hex, and the printable rune (or '.'
 // for non-printables).
-//
-//nolint:revive // AsciiTable mirrors the spec name and the TV demo.
-type AsciiTable struct {
+type ASCIITable struct {
 	*window.Window
 
 	grid   *asciiGrid
 	status *widget.StaticText
 }
 
-// AsciiDefaultBounds gives the table a comfortable 18-column footprint.
+// ASCIIDefaultBounds gives the table a comfortable 18-column footprint.
 //
 //nolint:gochecknoglobals // immutable default
-var AsciiDefaultBounds = vio.R(2, 2, 18+2, 16+4)
+var ASCIIDefaultBounds = vio.R(2, 2, 18+2, 16+4)
 
-// NewAsciiTable returns an AsciiTable window sized to bounds.
-func NewAsciiTable(bounds vio.Rect) *AsciiTable {
+// NewASCIITable returns an ASCIITable window sized to bounds.
+func NewASCIITable(bounds vio.Rect) *ASCIITable {
 	w := window.New(bounds, "ASCII Table", window.FlagMove|window.FlagClose)
-	a := &AsciiTable{Window: w}
+	a := &ASCIITable{Window: w}
 
 	client := w.ClientRect()
-	a.grid = newAsciiGrid(vio.R(client.X+1, client.Y, 16, 16))
+	a.grid = newASCIIGrid(vio.R(client.X+1, client.Y, 16, 16))
 	w.Insert(a.grid)
 
 	a.status = widget.NewStaticText(
@@ -47,10 +45,10 @@ func NewAsciiTable(bounds vio.Rect) *AsciiTable {
 }
 
 // Cursor returns the current codepoint under the cursor.
-func (a *AsciiTable) Cursor() byte { return a.grid.cursor }
+func (a *ASCIITable) Cursor() byte { return a.grid.cursor }
 
 // HandleEvent intercepts arrow keys to move the cursor.
-func (a *AsciiTable) HandleEvent(e *event.Event) {
+func (a *ASCIITable) HandleEvent(e *event.Event) {
 	if e.What == event.ClassKey && a.handleKey(e) {
 		a.refresh()
 		e.Clear()
@@ -59,7 +57,7 @@ func (a *AsciiTable) HandleEvent(e *event.Event) {
 	a.Window.HandleEvent(e)
 }
 
-func (a *AsciiTable) handleKey(e *event.Event) bool {
+func (a *ASCIITable) handleKey(e *event.Event) bool {
 	c := int(a.grid.cursor)
 	switch e.Key.Key {
 	case event.KeyArrowLeft:
@@ -82,7 +80,7 @@ func (a *AsciiTable) handleKey(e *event.Event) bool {
 	return true
 }
 
-func (a *AsciiTable) refresh() {
+func (a *ASCIITable) refresh() {
 	c := a.grid.cursor
 	display := rune(c)
 	if !isPrintable(c) {
@@ -108,7 +106,7 @@ type asciiGrid struct {
 	cursor byte
 }
 
-func newAsciiGrid(bounds vio.Rect) *asciiGrid {
+func newASCIIGrid(bounds vio.Rect) *asciiGrid {
 	v := view.NewView(bounds)
 	v.GrowMode = view.GrowFixed
 	v.EventMask = 0

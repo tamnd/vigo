@@ -7,16 +7,16 @@ import (
 	"github.com/tamnd/vigo/event"
 )
 
-func TestAsciiTableCursorStartsAtZero(t *testing.T) {
-	a := NewAsciiTable(AsciiDefaultBounds)
+func TestASCIITableCursorStartsAtZero(t *testing.T) {
+	a := NewASCIITable(ASCIIDefaultBounds)
 	hostFor(a)
 	if a.Cursor() != 0 {
 		t.Fatalf("cursor=%d want 0", a.Cursor())
 	}
 }
 
-func TestAsciiTableArrowsMoveCursor(t *testing.T) {
-	a := NewAsciiTable(AsciiDefaultBounds)
+func TestASCIITableArrowsMoveCursor(t *testing.T) {
+	a := NewASCIITable(ASCIIDefaultBounds)
 	hostFor(a)
 
 	a.HandleEvent(keyOf(event.KeyArrowRight))
@@ -29,8 +29,8 @@ func TestAsciiTableArrowsMoveCursor(t *testing.T) {
 	}
 }
 
-func TestAsciiTableLeftWrapsToEnd(t *testing.T) {
-	a := NewAsciiTable(AsciiDefaultBounds)
+func TestASCIITableLeftWrapsToEnd(t *testing.T) {
+	a := NewASCIITable(ASCIIDefaultBounds)
 	hostFor(a)
 
 	a.HandleEvent(keyOf(event.KeyArrowLeft))
@@ -39,8 +39,8 @@ func TestAsciiTableLeftWrapsToEnd(t *testing.T) {
 	}
 }
 
-func TestAsciiTableEndJumpsToLast(t *testing.T) {
-	a := NewAsciiTable(AsciiDefaultBounds)
+func TestASCIITableEndJumpsToLast(t *testing.T) {
+	a := NewASCIITable(ASCIIDefaultBounds)
 	hostFor(a)
 
 	a.HandleEvent(keyOf(event.KeyEnd))
@@ -53,8 +53,8 @@ func TestAsciiTableEndJumpsToLast(t *testing.T) {
 	}
 }
 
-func TestAsciiTableStatusFormatsCodepoint(t *testing.T) {
-	a := NewAsciiTable(AsciiDefaultBounds)
+func TestASCIITableStatusFormatsCodepoint(t *testing.T) {
+	a := NewASCIITable(ASCIIDefaultBounds)
 	hostFor(a)
 
 	// Move cursor to 'A' (65 = 0x41).
@@ -73,8 +73,8 @@ func TestAsciiTableStatusFormatsCodepoint(t *testing.T) {
 	}
 }
 
-func TestAsciiTableNonPrintableShowsDot(t *testing.T) {
-	a := NewAsciiTable(AsciiDefaultBounds)
+func TestASCIITableNonPrintableShowsDot(t *testing.T) {
+	a := NewASCIITable(ASCIIDefaultBounds)
 	hostFor(a)
 	// Cursor starts at 0 (NUL); non-printable -> '.'.
 	if !strings.Contains(a.status.Text, "char .") {
