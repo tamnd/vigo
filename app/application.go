@@ -64,6 +64,12 @@ func New(screen vio.Screen) *Application {
 	a.Insert(a.desktop)
 	a.Insert(a.status)
 	a.bar.Runner = func(box *menu.MenuBox) event.CommandID { return a.ExecView(box) }
+	a.bar.OnCommand = func(c event.CommandID) {
+		a.PutEvent(event.Event{
+			What: event.ClassCommand,
+			Msg:  event.MessageEvent{Command: c},
+		})
+	}
 	return a
 }
 

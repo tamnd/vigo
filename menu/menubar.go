@@ -45,6 +45,16 @@ type Bar struct {
 	Enabler *cmd.Enabler
 	Runner  MenuRunner
 
+	// OnCommand, if set, is invoked with the command chosen from a
+	// pull-down once the menu sub-loop returns. The host installs this
+	// to re-enter its own event pipeline (e.g. PutEvent + process) so
+	// framework-level commands such as CmdQuit and CmdHelp are caught
+	// by the loop rather than broadcast straight into the view tree.
+	// When OnCommand is nil, the chosen command is broadcast through
+	// Owner instead, preserving the Bar-as-standalone behavior tests
+	// rely on.
+	OnCommand func(event.CommandID)
+
 	// Last command chosen from a pull-down. Hosts read it after a Bar
 	// event returns to broadcast a CmdCommand on its behalf.
 	LastChosen event.CommandID
@@ -185,7 +195,14 @@ func (b *Bar) openAt(idx int) {
 			idx = b.nextWithChildren(idx, -1)
 		case event.CmdMenu:
 			b.LastChosen = box.Chosen()
-			if b.LastChosen != event.CmdNone && b.Owner != nil {
+			if b.LastChosen == event.CmdNone {
+				return
+			}
+			if b.OnCommand != nil {
+				b.OnCommand(b.LastChosen)
+				return
+			}
+			if b.Owner != nil {
 				b.Owner.HandleEvent(&event.Event{
 					What: event.ClassCommand,
 					Msg:  event.MessageEvent{Command: b.LastChosen},
