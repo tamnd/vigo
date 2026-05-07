@@ -106,7 +106,9 @@ func (g *Group) Draw(s *vio.Surface) {
 }
 
 // HandleEvent dispatches e to children in three phases (pre, focused,
-// post) and stops at the first child that consumes the event.
+// post) and stops at the first child that consumes the event. Tab and
+// Shift-Tab cycle focus through the selectable children when the
+// focused child did not already consume them.
 func (g *Group) HandleEvent(e *event.Event) {
 	if e.What == event.ClassNothing {
 		return
@@ -134,6 +136,21 @@ func (g *Group) HandleEvent(e *event.Event) {
 		}
 	}
 
+	// Phase 2.5: Tab focus cycling. Runs after focused dispatch so a
+	// focused widget can opt to consume Tab itself (a future Memo).
+	if e.What == event.ClassKey {
+		if e.Key.Key == event.KeyTab {
+			g.advanceFocus(1)
+			e.Clear()
+			return
+		}
+		if e.Key.Key == event.KeyShiftTab {
+			g.advanceFocus(-1)
+			e.Clear()
+			return
+		}
+	}
+
 	// Phase 3: post-process.
 	for _, c := range g.children {
 		if c.Base().Options&OptPostProcess == 0 {
@@ -144,6 +161,40 @@ func (g *Group) HandleEvent(e *event.Event) {
 		}
 		c.HandleEvent(e)
 		if e.What == event.ClassNothing {
+			return
+		}
+	}
+}
+
+// advanceFocus moves the current child by step positions through the
+// selectable children, wrapping at the ends. step == +1 for Tab, -1
+// for Shift-Tab. With fewer than two selectable children the call is
+// a no-op.
+func (g *Group) advanceFocus(step int) {
+	n := len(g.children)
+	if n == 0 {
+		return
+	}
+	selectable := 0
+	for _, c := range g.children {
+		if c.Base().Options&OptSelectable != 0 {
+			selectable++
+		}
+	}
+	if selectable < 2 {
+		return
+	}
+	start := g.current
+	if start < 0 {
+		start = -1
+	}
+	for i := 1; i <= n; i++ {
+		idx := (start + step*i) % n
+		if idx < 0 {
+			idx += n
+		}
+		if g.children[idx].Base().Options&OptSelectable != 0 {
+			g.SetCurrent(idx)
 			return
 		}
 	}

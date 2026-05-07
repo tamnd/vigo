@@ -6,12 +6,16 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
 
 	"github.com/tamnd/vigo/app"
+	"github.com/tamnd/vigo/assets"
+	"github.com/tamnd/vigo/menu"
 	"github.com/tamnd/vigo/vio"
+	"github.com/tamnd/vigo/window"
 )
 
 // Version is the build version of the vigo binary. It is overridden at link
@@ -43,5 +47,29 @@ func run() error {
 	defer screen.Fini()
 
 	a := app.New(screen)
+	if items, err := menu.LoadTOML(bytes.NewReader(assets.MainMenu())); err == nil {
+		a.MenuBar().Items = items
+	}
+
+	desktop := a.Desktop()
+	dr := desktop.Bounds
+	wnd := window.New(centerRect(dr, 60, 15), "Welcome", window.FlagsAll)
+	desktop.Insert(wnd)
+
 	return a.Run()
+}
+
+func centerRect(outer vio.Rect, w, h int) vio.Rect {
+	if w > outer.W {
+		w = outer.W
+	}
+	if h > outer.H {
+		h = outer.H
+	}
+	return vio.Rect{
+		X: outer.X + (outer.W-w)/2,
+		Y: outer.Y + (outer.H-h)/2,
+		W: w,
+		H: h,
+	}
 }
