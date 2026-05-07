@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/tamnd/vigo/event"
+	"github.com/tamnd/vigo/help"
 	"github.com/tamnd/vigo/menu"
 	"github.com/tamnd/vigo/view"
 	"github.com/tamnd/vigo/vio"
@@ -25,6 +26,8 @@ type Application struct {
 	bar     *menu.Bar
 	desktop *Desktop
 	status  *menu.Line
+
+	help *help.Registry
 
 	posted chan event.Event
 	quit   atomic.Bool
@@ -50,6 +53,7 @@ func New(screen vio.Screen) *Application {
 		Group:      g,
 		screen:     screen,
 		surface:    vio.NewSurface(w, h),
+		help:       help.Default(),
 		posted:     make(chan event.Event, 64),
 		finishedCh: make(chan struct{}),
 	}
@@ -72,6 +76,15 @@ func (a *Application) MenuBar() *menu.Bar { return a.bar }
 
 // StatusLine returns the status line child.
 func (a *Application) StatusLine() *menu.Line { return a.status }
+
+// HelpRegistry returns the help topic registry. Hosts register their
+// own contexts on it before Run; v0.2 only seeds CtxAbout.
+func (a *Application) HelpRegistry() *help.Registry { return a.help }
+
+// ShowAbout opens the About dialog as a modal sub-loop.
+func (a *Application) ShowAbout() event.CommandID {
+	return a.ExecView(help.About(a.help))
+}
 
 // Surface returns the composition surface, primarily for tests.
 func (a *Application) Surface() *vio.Surface { return a.surface }
@@ -212,6 +225,10 @@ func (a *Application) process(e event.Event) {
 		a.Quit()
 		return
 	}
+	if isHelpKey(e) || isHelpCommand(e) {
+		a.ShowAbout()
+		return
+	}
 	ev := e
 	if a.modal != nil {
 		a.modal.HandleEvent(&ev)
@@ -238,6 +255,20 @@ func isQuitCommand(e event.Event) bool {
 		return false
 	}
 	return e.Msg.Command == event.CmdQuit
+}
+
+func isHelpKey(e event.Event) bool {
+	if e.What != event.ClassKey {
+		return false
+	}
+	return e.Key.Key == event.KeyF1
+}
+
+func isHelpCommand(e event.Event) bool {
+	if e.What != event.ClassCommand && e.What != event.ClassBroadcast {
+		return false
+	}
+	return e.Msg.Command == event.CmdHelp
 }
 
 func (a *Application) resize(w, h int) {
