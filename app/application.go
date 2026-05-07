@@ -29,6 +29,8 @@ type Application struct {
 	posted chan event.Event
 	quit   atomic.Bool
 
+	modal view.Viewer
+
 	// finishedCh is closed by Run when the loop exits. Tests use it to
 	// synchronize on shutdown.
 	finishedCh chan struct{}
@@ -91,6 +93,22 @@ func (a *Application) PutEvent(e event.Event) {
 // Quit asks the loop to stop after the current iteration.
 func (a *Application) Quit() { a.quit.Store(true) }
 
+// SetModal pushes v as the currently active modal view. While set, only v
+// receives non-system events; the rest of the tree (menu bar, desktop,
+// status line) sees ClassNothing. Pass nil to clear the modal.
+//
+// The host is responsible for inserting v into a Group (typically the
+// desktop) before calling SetModal, and removing it after ClearModal.
+// Phase 2 ships this minimal slot; Dialog/MessageBox in phase 3 will wrap
+// it in an ExecView convenience.
+func (a *Application) SetModal(v view.Viewer) { a.modal = v }
+
+// ClearModal removes any active modal slot.
+func (a *Application) ClearModal() { a.modal = nil }
+
+// Modal returns the currently active modal view, or nil.
+func (a *Application) Modal() view.Viewer { return a.modal }
+
 // Run drives the event loop until Quit is called or the screen channel
 // closes. It returns the error returned by Screen.Show, or nil.
 func (a *Application) Run() error {
@@ -128,7 +146,8 @@ func (a *Application) Run() error {
 func (a *Application) Finished() <-chan struct{} { return a.finishedCh }
 
 // process is the per-event handler. It applies framework-level shortcuts
-// (resize, Alt-X, CmdQuit) before delegating to the Group dispatch.
+// (resize, Alt-X, CmdQuit), routes to the modal slot if one is active, and
+// otherwise delegates to the Group dispatch.
 func (a *Application) process(e event.Event) {
 	if e.What == event.ClassResize {
 		a.resize(e.Mouse.X, e.Mouse.Y)
@@ -139,6 +158,10 @@ func (a *Application) process(e event.Event) {
 		return
 	}
 	ev := e
+	if a.modal != nil {
+		a.modal.HandleEvent(&ev)
+		return
+	}
 	a.HandleEvent(&ev)
 }
 
