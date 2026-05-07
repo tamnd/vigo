@@ -38,3 +38,10 @@ const (
 	ShadeDark   rune = '▓'
 	ShadeFull   rune = '█'
 )
+
+// DesktopDot is the rune used by app.Background to fill the desktop.
+// Classic Turbo Vision used CP437 0xB0 (the light shade '░'), but most
+// modern monospace fonts render '░' as solid horizontal stripes rather
+// than the recognizable Borland blue speckle. The middle dot looks the
+// same on every font and reproduces the stippled pattern faithfully.
+const DesktopDot rune = '·'

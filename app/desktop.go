@@ -15,10 +15,10 @@ type Background struct {
 }
 
 // NewBackground returns a Background sized to r, drawing pattern as its fill
-// rune. Pass 0 for the Turbo Vision default (a light shade block).
+// rune. Pass 0 for the Turbo Vision default (the desktop dot).
 func NewBackground(r vio.Rect, pattern rune) *Background {
 	if pattern == 0 {
-		pattern = vio.ShadeLight
+		pattern = vio.DesktopDot
 	}
 	v := view.NewView(r)
 	v.GrowMode = view.GrowAll
