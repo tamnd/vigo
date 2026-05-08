@@ -5,6 +5,43 @@ Keep a Changelog 1.1.0; the project uses Semantic Versioning.
 
 ## [Unreleased]
 
+## [v0.2.1] - 2026-05-08
+
+### Added
+
+- `demos`: Calculator now ships with the classic 4x5 button grid
+  (digits, four operators, `=`, `C`, `±`, `%`, backspace) so it can
+  be driven entirely by the mouse.
+- `demos`: Calendar, ASCII Table, and Puzzle respond to mouse clicks
+  in their content area — pick a day, jump to a codepoint, slide an
+  adjacent tile.
+
+### Fixed
+
+- `view`: `Group` mouse-down dispatch now hit-tests sibling children
+  instead of routing every click to the focused view, so buttons in
+  a Calculator or Dialog react to clicks even when another widget
+  holds focus.
+- `view`: child Bounds are translated when an owner moves (not only
+  when it resizes), so dragging a window no longer leaves its widgets
+  behind.
+- `app`,`menu`: commands chosen from a pulled-down menu now flow
+  through `Application.process` (and broadcast handlers) instead of
+  being dropped on the floor.
+- `menu`: `~x~` mnemonic markers are stripped from item and bar
+  titles at render so the highlight letter shows without the tildes.
+- `window`: frame title padding no longer overlaps the close and
+  zoom brackets.
+- `demos`: ASCII Table treats the C1 control range (0x80..0x9F) as
+  non-printable so it renders as `.` instead of garbage.
+- `demos`: Calendar default bounds are wide enough that no day cell
+  is clipped, and Puzzle bounds are wide enough that the status row
+  is not truncated.
+
+### Changed
+
+- `help.Version` now reads `v0.2.1`.
+
 ## [v0.2.0] - 2026-05-08
 
 ### Added
@@ -81,6 +118,7 @@ Keep a Changelog 1.1.0; the project uses Semantic Versioning.
 - MIT license, README, full multi-version specification in `docs/`
   (overview, roadmap, architecture).
 
-[Unreleased]: https://github.com/tamnd/vigo/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/tamnd/vigo/compare/v0.2.1...HEAD
+[v0.2.1]: https://github.com/tamnd/vigo/releases/tag/v0.2.1
 [v0.2.0]: https://github.com/tamnd/vigo/releases/tag/v0.2.0
 [v0.1.0]: https://github.com/tamnd/vigo/releases/tag/v0.1.0

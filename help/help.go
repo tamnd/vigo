@@ -89,7 +89,7 @@ func Default() *Registry {
 // (commit hash, build date, etc.).
 //
 //nolint:gochecknoglobals // single mutable build label
-var Version = "v0.2.0"
+var Version = "v0.2.1"
 
 const (
 	aboutW    = 44
