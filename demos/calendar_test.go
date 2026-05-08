@@ -93,3 +93,43 @@ func TestCalendarUnknownKeyFallsThrough(t *testing.T) {
 		t.Fatalf("unrelated rune changed cursor")
 	}
 }
+
+func TestCalendarClickSetsCursorDay(t *testing.T) {
+	c := NewCalendarAt(CalDefaultBounds, dateAt(2026, time.May, 7))
+	hostFor(c)
+
+	// May 2026 starts on a Friday, so day 1 is at column 5 of row 0.
+	// Day 15 is at index startCol(5)+14 = 19 -> row 2 col 5. Click that
+	// cell relative to the grid. Grid X = client.X+1, header is row 0.
+	first := time.Date(2026, time.May, 1, 0, 0, 0, 0, time.UTC)
+	startCol := int(first.Weekday())
+	day := 15
+	idx := startCol + day - 1
+	row := idx / 7
+	col := idx % 7
+	x := c.grid.Bounds.X + col*3
+	y := c.grid.Bounds.Y + 1 + row
+
+	c.HandleEvent(&event.Event{
+		What:  event.ClassMouseDown,
+		Mouse: event.MouseEvent{X: x, Y: y, Buttons: event.MouseLeft},
+	})
+	if got := c.Cursor().Day(); got != day {
+		t.Fatalf("click day=%d want %d", got, day)
+	}
+}
+
+func TestCalendarClickOutsideMonthIgnored(t *testing.T) {
+	c := NewCalendarAt(CalDefaultBounds, dateAt(2026, time.May, 7))
+	hostFor(c)
+
+	before := c.Cursor()
+	// (0, 0) is well outside the grid bounds.
+	c.HandleEvent(&event.Event{
+		What:  event.ClassMouseDown,
+		Mouse: event.MouseEvent{X: 0, Y: 0, Buttons: event.MouseLeft},
+	})
+	if !c.Cursor().Equal(before) {
+		t.Fatalf("click outside grid changed cursor")
+	}
+}

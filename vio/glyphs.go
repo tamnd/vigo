@@ -38,3 +38,8 @@ const (
 	ShadeDark   rune = '▓'
 	ShadeFull   rune = '█'
 )
+
+// DesktopDot is the rune used by app.Background to fill the desktop.
+// Classic Turbo Vision used CP437 0xB0 (the light shade '░'); the same
+// glyph in Unicode is the closest visual match across modern terminals.
+const DesktopDot = ShadeLight

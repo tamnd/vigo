@@ -151,9 +151,10 @@ func (m *MenuBox) Draw(s *vio.Surface) {
 		if i == m.sel {
 			hotAttr = selected
 		}
-		for j, r := range []rune(it.Title) {
+		title, hot := it.display()
+		for j, r := range []rune(title) {
 			ch := attr
-			if j == it.Hotkey && m.IsEnabled(i) {
+			if j == hot && m.IsEnabled(i) {
 				ch = hotAttr
 			}
 			s.Set(x, row, r, ch)
@@ -316,14 +317,18 @@ func (m *MenuBox) lastSelectable() int {
 func (m *MenuBox) findHotkey(r rune) int {
 	target := unicode.ToLower(r)
 	for i, it := range m.Items {
-		if it.Sep || it.Hotkey < 0 {
+		if it.Sep {
 			continue
 		}
-		runes := []rune(it.Title)
-		if it.Hotkey >= len(runes) {
+		title, hot := it.display()
+		if hot < 0 {
 			continue
 		}
-		if unicode.ToLower(runes[it.Hotkey]) == target {
+		runes := []rune(title)
+		if hot >= len(runes) {
+			continue
+		}
+		if unicode.ToLower(runes[hot]) == target {
 			return i
 		}
 	}
@@ -337,7 +342,8 @@ func menuBoxSize(items []Item) (int, int) {
 		if it.Sep {
 			continue
 		}
-		titleLen := len([]rune(it.Title))
+		title, _ := it.display()
+		titleLen := len([]rune(title))
 		if len(it.Children) > 0 || it.Shortcut != "" {
 			titleLen += 2 // gutter before shortcut/arrow
 		}

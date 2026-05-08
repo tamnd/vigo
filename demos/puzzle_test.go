@@ -91,3 +91,38 @@ func TestPuzzleNonArrowKeyIgnored(t *testing.T) {
 		t.Fatal("unrelated key changed the board")
 	}
 }
+
+func TestPuzzleClickAdjacentTileSlides(t *testing.T) {
+	p := NewPuzzleOneAway(PuzzleDefaultBounds)
+	hostFor(p)
+
+	// Blank sits at (2,3); tile 15 is the right-side neighbor at (3,3).
+	x := p.board.Bounds.X + 3*4 + 1
+	y := p.board.Bounds.Y + 3
+	p.HandleEvent(&event.Event{
+		What:  event.ClassMouseDown,
+		Mouse: event.MouseEvent{X: x, Y: y, Buttons: event.MouseLeft},
+	})
+	if !p.Solved() {
+		t.Fatalf("click on adjacent tile should solve; tiles=%v", p.board.tiles)
+	}
+	if p.Moves() != 1 {
+		t.Fatalf("moves=%d want 1", p.Moves())
+	}
+}
+
+func TestPuzzleClickNonAdjacentTileIgnored(t *testing.T) {
+	p := NewPuzzleSolved(PuzzleDefaultBounds)
+	hostFor(p)
+
+	// Blank is at (3,3); click tile (0,0) which is not adjacent.
+	x := p.board.Bounds.X + 1
+	y := p.board.Bounds.Y
+	p.HandleEvent(&event.Event{
+		What:  event.ClassMouseDown,
+		Mouse: event.MouseEvent{X: x, Y: y, Buttons: event.MouseLeft},
+	})
+	if p.Moves() != 0 {
+		t.Fatalf("non-adjacent click should not slide; moves=%d", p.Moves())
+	}
+}

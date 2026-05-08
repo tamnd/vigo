@@ -47,14 +47,37 @@ func NewASCIITable(bounds vio.Rect) *ASCIITable {
 // Cursor returns the current codepoint under the cursor.
 func (a *ASCIITable) Cursor() byte { return a.grid.cursor }
 
-// HandleEvent intercepts arrow keys to move the cursor.
+// HandleEvent intercepts arrow keys and grid clicks; everything else
+// falls through to the Window dispatch.
 func (a *ASCIITable) HandleEvent(e *event.Event) {
 	if e.What == event.ClassKey && a.handleKey(e) {
 		a.refresh()
 		e.Clear()
 		return
 	}
+	if e.What == event.ClassMouseDown && a.handleMouse(e) {
+		a.refresh()
+		e.Clear()
+		return
+	}
 	a.Window.HandleEvent(e)
+}
+
+// handleMouse moves the cursor to the codepoint under the click.
+// The click is in absolute screen coordinates; the grid is 16x16
+// starting at grid.Bounds.{X,Y}.
+func (a *ASCIITable) handleMouse(e *event.Event) bool {
+	p := vio.Point{X: e.Mouse.X, Y: e.Mouse.Y}
+	if !a.grid.Bounds.Contains(p) {
+		return false
+	}
+	col := p.X - a.grid.Bounds.X
+	row := p.Y - a.grid.Bounds.Y
+	if col < 0 || col >= 16 || row < 0 || row >= 16 {
+		return false
+	}
+	a.grid.cursor = byte(row*16 + col)
+	return true
 }
 
 func (a *ASCIITable) handleKey(e *event.Event) bool {
@@ -94,6 +117,9 @@ func isPrintable(c byte) bool {
 		return false
 	}
 	if c == 0x7f {
+		return false
+	}
+	if c >= 0x80 && c <= 0x9f {
 		return false
 	}
 	return true

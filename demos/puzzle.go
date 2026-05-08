@@ -26,11 +26,11 @@ type Puzzle struct {
 	shuffle func() [PuzzleSize * PuzzleSize]int
 }
 
-// PuzzleDefaultBounds is sized to fit a 4x4 grid of 4-wide cells
-// plus the status row.
+// PuzzleDefaultBounds is sized to fit a 4x4 grid of 4-wide cells plus
+// the status row "Moves: NNN  in play" (or "SOLVED").
 //
 //nolint:gochecknoglobals // immutable default
-var PuzzleDefaultBounds = vio.R(2, 2, PuzzleSize*4+4, PuzzleSize+5)
+var PuzzleDefaultBounds = vio.R(2, 2, 23, PuzzleSize+5)
 
 // NewPuzzle returns a Puzzle window with a randomly shuffled board.
 func NewPuzzle(bounds vio.Rect) *Puzzle {
@@ -76,14 +76,46 @@ func (p *Puzzle) Moves() int { return p.moves }
 // arrangement.
 func (p *Puzzle) Solved() bool { return p.board.solved() }
 
-// HandleEvent intercepts arrow keys (slide) and 'R' (reset).
+// HandleEvent intercepts arrow keys (slide), 'R' (reset), and
+// clicks on a tile adjacent to the blank.
 func (p *Puzzle) HandleEvent(e *event.Event) {
 	if e.What == event.ClassKey && p.handleKey(e) {
 		p.refresh()
 		e.Clear()
 		return
 	}
+	if e.What == event.ClassMouseDown && p.handleMouse(e) {
+		p.refresh()
+		e.Clear()
+		return
+	}
 	p.Window.HandleEvent(e)
+}
+
+// handleMouse slides the tile at the click position into the blank,
+// if and only if the tile is the immediate neighbor of the blank.
+// Returns false if the click misses the board or hits a non-adjacent
+// cell.
+func (p *Puzzle) handleMouse(e *event.Event) bool {
+	pt := vio.Point{X: e.Mouse.X, Y: e.Mouse.Y}
+	if !p.board.Bounds.Contains(pt) {
+		return false
+	}
+	col := (pt.X - p.board.Bounds.X) / 4
+	row := pt.Y - p.board.Bounds.Y
+	if col < 0 || col >= PuzzleSize || row < 0 || row >= PuzzleSize {
+		return false
+	}
+	dx := col - p.board.blankCol
+	dy := row - p.board.blankRow
+	if dx*dx+dy*dy != 1 {
+		// not orthogonally adjacent to the blank
+		return false
+	}
+	if p.board.slide(dx, dy) {
+		p.moves++
+	}
+	return true
 }
 
 func (p *Puzzle) handleKey(e *event.Event) bool {

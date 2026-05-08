@@ -81,3 +81,19 @@ func TestASCIITableNonPrintableShowsDot(t *testing.T) {
 		t.Fatalf("status %q want '.' for NUL", a.status.Text)
 	}
 }
+
+func TestASCIITableClickSetsCursor(t *testing.T) {
+	a := NewASCIITable(ASCIIDefaultBounds)
+	hostFor(a)
+
+	// Click cell at (col=5, row=3) -> codepoint 3*16+5 = 53.
+	c := a.grid.Bounds.X + 5
+	r := a.grid.Bounds.Y + 3
+	a.HandleEvent(&event.Event{
+		What:  event.ClassMouseDown,
+		Mouse: event.MouseEvent{X: c, Y: r, Buttons: event.MouseLeft},
+	})
+	if got := a.Cursor(); got != 53 {
+		t.Fatalf("click cursor=%d want 53", got)
+	}
+}

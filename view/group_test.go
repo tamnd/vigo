@@ -229,6 +229,97 @@ func TestChangeBoundsPropagatesGrow(t *testing.T) {
 	}
 }
 
+// TestMouseDownRoutesByHitTest guards against the regression where a
+// mouse-down was dispatched only to the focused child, so a click on
+// any other selectable child (e.g. a Button on a Dialog or in the
+// Calculator's grid) was silently dropped. The new dispatcher hits
+// the topmost selectable child whose bounds contain the click.
+func TestMouseDownRoutesByHitTest(t *testing.T) {
+	log := new([]string)
+	g := NewGroup(vio.R(0, 0, 20, 5))
+	a := newRecorder("a", log)
+	a.Bounds = vio.R(0, 0, 5, 1)
+	b := newRecorder("b", log)
+	b.Bounds = vio.R(10, 0, 5, 1)
+	g.Insert(a)
+	g.Insert(b)
+	g.SetCurrent(0) // a is focused
+
+	g.HandleEvent(&event.Event{
+		What:  event.ClassMouseDown,
+		Mouse: event.MouseEvent{X: 12, Y: 0, Buttons: event.MouseLeft},
+	})
+	if len(*log) != 1 || (*log)[0] != "b" {
+		t.Fatalf("hit-test should dispatch to b, got %v", *log)
+	}
+}
+
+// TestMouseDownFallsBackToFocusWhenNoHit confirms that if no selectable
+// child sits under the cursor, the dispatcher still delivers the click
+// to the focused child. Without this fall-back, Desktop's focusAt and
+// modal sub-loops would lose mouse-down clicks that miss every
+// content child.
+func TestMouseDownFallsBackToFocusWhenNoHit(t *testing.T) {
+	log := new([]string)
+	g := NewGroup(vio.R(0, 0, 20, 5))
+	a := newRecorder("a", log)
+	a.Bounds = vio.R(0, 0, 5, 1)
+	g.Insert(a)
+	g.SetCurrent(0)
+
+	g.HandleEvent(&event.Event{
+		What:  event.ClassMouseDown,
+		Mouse: event.MouseEvent{X: 15, Y: 4, Buttons: event.MouseLeft},
+	})
+	if len(*log) != 1 || (*log)[0] != "a" {
+		t.Fatalf("fallback should reach focused child, got %v", *log)
+	}
+}
+
+// TestMouseDownSkipsNonSelectable ensures a frame or static text view
+// cannot eat a click meant for a selectable button underneath. The
+// hit-test loop only considers OptSelectable children.
+func TestMouseDownSkipsNonSelectable(t *testing.T) {
+	log := new([]string)
+	g := NewGroup(vio.R(0, 0, 20, 5))
+	frame := newRecorder("frame", log)
+	frame.Options &^= OptSelectable
+	frame.Bounds = vio.R(0, 0, 20, 5)
+	button := newRecorder("button", log)
+	button.Bounds = vio.R(2, 1, 4, 1)
+	g.Insert(frame)
+	g.Insert(button)
+
+	g.HandleEvent(&event.Event{
+		What:  event.ClassMouseDown,
+		Mouse: event.MouseEvent{X: 3, Y: 1, Buttons: event.MouseLeft},
+	})
+	if len(*log) != 1 || (*log)[0] != "button" {
+		t.Fatalf("hit-test should skip frame and reach button, got %v", *log)
+	}
+}
+
+// TestChangeBoundsTranslatesChildren guards the regression where dragging
+// a window moved the frame but left content children pinned to their
+// original screen position. Children store absolute bounds, so a pure
+// owner move (size unchanged) must shift every child by the same delta.
+func TestChangeBoundsTranslatesChildren(t *testing.T) {
+	g := NewGroup(vio.R(10, 5, 20, 10))
+	a := NewView(vio.R(11, 6, 5, 3))
+	a.GrowMode = GrowFixed
+	b := NewView(vio.R(20, 10, 8, 4))
+	b.GrowMode = GrowFixed
+	g.Insert(a)
+	g.Insert(b)
+	g.ChangeBounds(vio.R(30, 8, 20, 10))
+	if a.Bounds != (vio.R(31, 9, 5, 3)) {
+		t.Fatalf("a not translated: %+v", a.Bounds)
+	}
+	if b.Bounds != (vio.R(40, 13, 8, 4)) {
+		t.Fatalf("b not translated: %+v", b.Bounds)
+	}
+}
+
 func TestChangeBoundsClampsNegative(t *testing.T) {
 	g := NewGroup(vio.R(0, 0, 10, 10))
 	v := NewView(vio.R(0, 0, 5, 5))

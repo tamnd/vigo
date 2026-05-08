@@ -74,6 +74,36 @@ func TestApplicationRunQuitsOnCmdQuit(t *testing.T) {
 	}
 }
 
+// TestApplicationMenuExitQuits guards the regression where Bar.openAt
+// dispatched the chosen command synchronously through Owner, bypassing
+// the loop's framework-level CmdQuit interception. With OnCommand wired
+// to PutEvent, picking Exit from the File menu must end Run.
+func TestApplicationMenuExitQuits(t *testing.T) {
+	a, f := newTestApp(t)
+	defer f.Fini()
+
+	a.MenuBar().Items = []menu.Item{
+		{Title: "File", Hotkey: 0, Children: []menu.Item{
+			{Title: "Exit", Hotkey: 1, Cmd: event.CmdQuit},
+		}},
+	}
+	a.MenuBar().Runner = func(box *menu.MenuBox) event.CommandID {
+		box.HandleEvent(&event.Event{
+			What: event.ClassKey,
+			Key:  event.KeyEvent{Key: event.KeyEnter},
+		})
+		return box.Result()
+	}
+
+	go f.PushEvent(event.Event{
+		What: event.ClassKey,
+		Key:  event.KeyEvent{Key: event.KeyF10},
+	})
+	if err := a.Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+}
+
 func TestApplicationResize(t *testing.T) {
 	a, f := newTestApp(t)
 	defer f.Fini()

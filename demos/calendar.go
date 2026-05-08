@@ -21,11 +21,12 @@ type Calendar struct {
 	grid   *calendarGrid
 }
 
-// CalDefaultBounds is the calendar's default footprint: 22x10 leaves
-// room for the seven-column day grid plus a header and frame.
+// CalDefaultBounds is the calendar's default footprint: 25x10 leaves
+// room for the seven-column day grid (7*3 cells) plus a header and
+// frame.
 //
 //nolint:gochecknoglobals // immutable default
-var CalDefaultBounds = vio.R(2, 2, 22, 10)
+var CalDefaultBounds = vio.R(2, 2, 25, 10)
 
 // NewCalendar returns a Calendar window opened to today's month.
 func NewCalendar(bounds vio.Rect) *Calendar {
@@ -59,15 +60,43 @@ func NewCalendarAt(bounds vio.Rect, on time.Time) *Calendar {
 // Cursor returns the currently selected date.
 func (c *Calendar) Cursor() time.Time { return c.grid.cursor }
 
-// HandleEvent intercepts navigation keys and falls back to the
-// Window dispatch for everything else.
+// HandleEvent intercepts navigation keys and grid clicks; everything
+// else falls through to the Window dispatch.
 func (c *Calendar) HandleEvent(e *event.Event) {
 	if e.What == event.ClassKey && c.handleKey(e) {
 		c.refreshHeader()
 		e.Clear()
 		return
 	}
+	if e.What == event.ClassMouseDown && c.handleMouse(e) {
+		c.refreshHeader()
+		e.Clear()
+		return
+	}
 	c.Window.HandleEvent(e)
+}
+
+// handleMouse moves the cursor to the day cell under the click.
+// Returns false if the click misses the grid or lands on an empty
+// cell outside the current month.
+func (c *Calendar) handleMouse(e *event.Event) bool {
+	p := vio.Point{X: e.Mouse.X, Y: e.Mouse.Y}
+	if !c.grid.Bounds.Contains(p) {
+		return false
+	}
+	col := (p.X - c.grid.Bounds.X) / 3
+	row := p.Y - c.grid.Bounds.Y - 1 // header row eats the first line
+	if row < 0 || col < 0 || col >= 7 {
+		return false
+	}
+	first := time.Date(c.grid.cursor.Year(), c.grid.cursor.Month(), 1, 0, 0, 0, 0, c.grid.cursor.Location())
+	startCol := int(first.Weekday())
+	day := row*7 + col - startCol + 1
+	if day < 1 || day > lastDayOfMonth(c.grid.cursor) {
+		return false
+	}
+	c.grid.cursor = time.Date(c.grid.cursor.Year(), c.grid.cursor.Month(), day, 0, 0, 0, 0, c.grid.cursor.Location())
+	return true
 }
 
 func (c *Calendar) handleKey(e *event.Event) bool {
@@ -159,6 +188,9 @@ func (g *calendarGrid) Draw(s *vio.Surface) {
 		y := g.Bounds.Y + 1 + row
 		if y >= g.Bounds.Bottom() {
 			break
+		}
+		if x+2 > g.Bounds.Right() {
+			continue
 		}
 		attr := normal
 		if d == g.cursor.Day() {
