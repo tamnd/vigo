@@ -2,7 +2,7 @@ module github.com/tamnd/vigo
 
 go 1.24.0
 
-require github.com/gdamore/tcell/v2 v2.13.9
+require github.com/gdamore/tcell/v2 v2.13.10
 
 require (
 	github.com/gdamore/encoding v1.0.1 // indirect
